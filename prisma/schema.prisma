@@ -1,0 +1,150 @@
+// Esquema de la base de datos de la carnicería.
+// Tablas y columnas en español, snake_case (convención PostgreSQL).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CategoriaProducto {
+  VACUNO
+  CERDO
+  AVE
+  CHACINADOS
+  OTROS
+
+  @@map("categoria_producto")
+}
+
+enum UnidadMedida {
+  KG
+  UNIDAD
+
+  @@map("unidad_medida")
+}
+
+enum FormaPago {
+  CONTADO
+  FIADO
+  MIXTO
+
+  @@map("forma_pago")
+}
+
+enum TipoMovimiento {
+  CARGO
+  PAGO
+
+  @@map("tipo_movimiento")
+}
+
+model Producto {
+  id                      String            @id @default(uuid())
+  nombre                  String
+  categoria               CategoriaProducto
+  unidadMedida            UnidadMedida      @default(KG) @map("unidad_medida")
+  stockActual             Decimal           @default(0) @map("stock_actual") @db.Decimal(12, 3)
+  costoUnitarioReferencia Decimal           @default(0) @map("costo_unitario_referencia") @db.Decimal(12, 2)
+  precioVentaReferencia   Decimal           @default(0) @map("precio_venta_referencia") @db.Decimal(12, 2)
+  activo                  Boolean           @default(true)
+  fechaCreacion           DateTime          @default(now()) @map("fecha_creacion")
+
+  itemsCompra ItemCompra[]
+  itemsVenta  ItemVenta[]
+
+  @@map("productos")
+}
+
+model Compra {
+  id            String   @id @default(uuid())
+  fecha         DateTime @default(now())
+  proveedor     String?
+  total         Decimal  @db.Decimal(12, 2)
+  observaciones String?
+
+  items ItemCompra[]
+
+  @@map("compras")
+}
+
+model ItemCompra {
+  id            String  @id @default(uuid())
+  compraId      String  @map("compra_id")
+  productoId    String  @map("producto_id")
+  cantidad      Decimal @db.Decimal(12, 3)
+  costoUnitario Decimal @map("costo_unitario") @db.Decimal(12, 2)
+  subtotal      Decimal @db.Decimal(12, 2)
+
+  compra   Compra   @relation(fields: [compraId], references: [id], onDelete: Cascade)
+  producto Producto @relation(fields: [productoId], references: [id])
+
+  @@map("items_compra")
+}
+
+model Venta {
+  id            String    @id @default(uuid())
+  fecha         DateTime  @default(now())
+  clienteId     String?   @map("cliente_id")
+  total         Decimal   @db.Decimal(12, 2)
+  montoContado  Decimal   @map("monto_contado") @db.Decimal(12, 2)
+  montoFiado    Decimal   @map("monto_fiado") @db.Decimal(12, 2)
+  formaPago     FormaPago @map("forma_pago")
+  observaciones String?
+
+  items       ItemVenta[]
+  cliente     Cliente?           @relation(fields: [clienteId], references: [id])
+  movimientos MovimientoCuenta[]
+
+  @@map("ventas")
+}
+
+model ItemVenta {
+  id                  String  @id @default(uuid())
+  ventaId             String  @map("venta_id")
+  productoId          String  @map("producto_id")
+  cantidad            Decimal @db.Decimal(12, 3)
+  precioUnitarioVenta Decimal @map("precio_unitario_venta") @db.Decimal(12, 2)
+  // Costo del producto al momento de la venta (snapshot): la ganancia histórica
+  // no cambia aunque después cambie el costo de referencia del producto.
+  costoUnitario       Decimal @map("costo_unitario") @db.Decimal(12, 2)
+  subtotal            Decimal @db.Decimal(12, 2)
+  gananciaLinea       Decimal @map("ganancia_linea") @db.Decimal(12, 2)
+
+  venta    Venta    @relation(fields: [ventaId], references: [id], onDelete: Cascade)
+  producto Producto @relation(fields: [productoId], references: [id])
+
+  @@map("items_venta")
+}
+
+model Cliente {
+  id            String   @id @default(uuid())
+  nombre        String
+  telefono      String?
+  saldoDeudor   Decimal  @default(0) @map("saldo_deudor") @db.Decimal(12, 2)
+  activo        Boolean  @default(true)
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+
+  ventas      Venta[]
+  movimientos MovimientoCuenta[]
+
+  @@map("clientes")
+}
+
+model MovimientoCuenta {
+  id            String         @id @default(uuid())
+  clienteId     String         @map("cliente_id")
+  tipo          TipoMovimiento
+  monto         Decimal        @db.Decimal(12, 2)
+  fecha         DateTime       @default(now())
+  ventaId       String?        @map("venta_id")
+  observaciones String?
+
+  cliente Cliente @relation(fields: [clienteId], references: [id])
+  venta   Venta?  @relation(fields: [ventaId], references: [id])
+
+  @@map("movimientos_cuenta")
+}

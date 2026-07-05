@@ -1,0 +1,22 @@
+# PostgreSQL local para desarrollo. En producción se usa Supabase (ver README).
+services:
+  base-de-datos:
+    image: postgres:16-alpine
+    container_name: carniceria-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: carniceria
+      POSTGRES_PASSWORD: carniceria
+      POSTGRES_DB: carniceria
+    ports:
+      - "5433:5432"
+    volumes:
+      - datos_carniceria:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U carniceria"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  datos_carniceria:
