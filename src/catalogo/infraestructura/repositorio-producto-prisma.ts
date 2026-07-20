@@ -47,6 +47,7 @@ export class RepositorioProductoPrisma extends RepositorioProducto {
       stockActual: producto.stockActual,
       costoUnitarioReferencia: producto.costoUnitarioReferencia,
       precioVentaReferencia: producto.precioVentaReferencia,
+      seVende: producto.seVende,
       activo: producto.activo,
       fechaCreacion: producto.fechaCreacion,
     };
@@ -66,6 +67,7 @@ export class RepositorioProductoPrisma extends RepositorioProducto {
       stockActual: Number(fila.stockActual),
       costoUnitarioReferencia: Number(fila.costoUnitarioReferencia),
       precioVentaReferencia: Number(fila.precioVentaReferencia),
+      seVende: fila.seVende,
       activo: fila.activo,
       fechaCreacion: fila.fechaCreacion,
     });

@@ -3,6 +3,7 @@ export type CategoriaProducto =
   | 'CERDO'
   | 'AVE'
   | 'CHACINADOS'
+  | 'INSUMOS'
   | 'OTROS';
 
 export const CATEGORIAS_PRODUCTO: CategoriaProducto[] = [
@@ -10,5 +11,6 @@ export const CATEGORIAS_PRODUCTO: CategoriaProducto[] = [
   'CERDO',
   'AVE',
   'CHACINADOS',
+  'INSUMOS',
   'OTROS',
 ];

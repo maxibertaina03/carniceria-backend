@@ -1,5 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsIn,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 import { UNIDADES_MEDIDA, UnidadMedida } from '../../../comun/dominio/unidad-medida';
 import { CATEGORIAS_PRODUCTO, CategoriaProducto } from '../../dominio/categoria-producto';
 
@@ -47,4 +55,13 @@ export class CrearProductoDto {
   @IsNumber({}, { message: 'El precio de venta debe ser un número' })
   @Min(0, { message: 'El precio de venta no puede ser negativo' })
   precioVentaReferencia?: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Si se vende al mostrador (true) o es un insumo/corte interno de producción que no se vende (false). Por defecto true.',
+    default: true,
+  })
+  @IsOptional()
+  @IsBoolean({ message: 'El campo "se vende" debe ser verdadero o falso' })
+  seVende?: boolean;
 }

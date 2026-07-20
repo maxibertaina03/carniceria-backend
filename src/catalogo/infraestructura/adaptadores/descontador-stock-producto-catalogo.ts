@@ -13,7 +13,7 @@ export class DescontadorStockProductoCatalogo extends DescontadorStockProducto {
     super();
   }
 
-  async descontarPorVenta(
+  async descontar(
     productoId: string,
     cantidad: number,
     ctx?: ContextoTransaccion,

@@ -66,7 +66,7 @@ export class ServicioCompras {
       await this.repositorio.guardar(compra, ctx);
 
       for (const item of compra.items) {
-        await this.actualizadorStock.registrarIngresoPorCompra(
+        await this.actualizadorStock.registrarIngreso(
           item.productoId,
           item.cantidad,
           item.costoUnitario,

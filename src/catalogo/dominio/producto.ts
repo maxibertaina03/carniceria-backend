@@ -17,6 +17,7 @@ export interface PropiedadesProducto {
   stockActual: number;
   costoUnitarioReferencia: number;
   precioVentaReferencia: number;
+  seVende: boolean;
   activo: boolean;
   fechaCreacion: Date;
 }
@@ -27,6 +28,7 @@ export interface DatosNuevoProducto {
   unidadMedida?: UnidadMedida;
   costoUnitarioReferencia?: number;
   precioVentaReferencia?: number;
+  seVende?: boolean;
 }
 
 // Aggregate root del catálogo: qué se vende y cuánto stock hay.
@@ -46,6 +48,7 @@ export class Producto {
       precioVentaReferencia: Dinero.desde(
         datos.precioVentaReferencia ?? 0,
       ).monto,
+      seVende: datos.seVende ?? true,
       activo: true,
       fechaCreacion: new Date(),
     });
@@ -85,6 +88,9 @@ export class Producto {
   }
   get precioVentaReferencia() {
     return this.props.precioVentaReferencia;
+  }
+  get seVende() {
+    return this.props.seVende;
   }
   get activo() {
     return this.props.activo;
@@ -128,6 +134,7 @@ export class Producto {
     nombre?: string;
     categoria?: CategoriaProducto;
     unidadMedida?: UnidadMedida;
+    seVende?: boolean;
   }): void {
     if (datos.nombre !== undefined) {
       this.props.nombre = Producto.validarNombre(datos.nombre);
@@ -137,6 +144,9 @@ export class Producto {
     }
     if (datos.unidadMedida !== undefined) {
       this.props.unidadMedida = datos.unidadMedida;
+    }
+    if (datos.seVende !== undefined) {
+      this.props.seVende = datos.seVende;
     }
   }
 

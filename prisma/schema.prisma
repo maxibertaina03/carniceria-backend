@@ -15,6 +15,7 @@ enum CategoriaProducto {
   CERDO
   AVE
   CHACINADOS
+  INSUMOS
   OTROS
 
   @@map("categoria_producto")
@@ -22,6 +23,8 @@ enum CategoriaProducto {
 
 enum UnidadMedida {
   KG
+  GRAMO
+  METRO
   UNIDAD
 
   @@map("unidad_medida")
@@ -50,11 +53,18 @@ model Producto {
   stockActual             Decimal           @default(0) @map("stock_actual") @db.Decimal(12, 3)
   costoUnitarioReferencia Decimal           @default(0) @map("costo_unitario_referencia") @db.Decimal(12, 2)
   precioVentaReferencia   Decimal           @default(0) @map("precio_venta_referencia") @db.Decimal(12, 2)
+  // Si es false, no aparece en la pantalla de Ventas (insumos, cortes intermedios).
+  seVende                 Boolean           @default(true) @map("se_vende")
   activo                  Boolean           @default(true)
   fechaCreacion           DateTime          @default(now()) @map("fecha_creacion")
 
-  itemsCompra ItemCompra[]
-  itemsVenta  ItemVenta[]
+  itemsCompra         ItemCompra[]
+  itemsVenta          ItemVenta[]
+  itemsDesposte       ItemDesposte[]
+  recetas             Receta[]
+  ingredientesReceta  IngredienteReceta[]
+  ordenesProduccion   OrdenProduccion[]
+  itemsProduccion     ItemProduccion[]
 
   @@map("productos")
 }
@@ -147,4 +157,94 @@ model MovimientoCuenta {
   venta   Venta?  @relation(fields: [ventaId], references: [id])
 
   @@map("movimientos_cuenta")
+}
+
+// --- Desposte: se compra una media res y se desarma en cortes ---
+
+model Desposte {
+  id            String   @id @default(uuid())
+  fecha         DateTime @default(now())
+  proveedor     String?
+  pesoRes       Decimal  @map("peso_res") @db.Decimal(12, 3)
+  costoTotal    Decimal  @map("costo_total") @db.Decimal(12, 2)
+  observaciones String?
+
+  cortes ItemDesposte[]
+
+  @@map("despostes")
+}
+
+model ItemDesposte {
+  id         String  @id @default(uuid())
+  desposteId String  @map("desposte_id")
+  productoId String  @map("producto_id")
+  cantidad   Decimal @db.Decimal(12, 3)
+  // Valor por kg que el usuario le asigna al corte; reparte el costo de la res.
+  valorReferencia Decimal @map("valor_referencia") @db.Decimal(12, 2)
+  // Costo por kg calculado que se asignó al corte al despostar (snapshot).
+  costoUnitario   Decimal @map("costo_unitario") @db.Decimal(12, 2)
+  subtotal        Decimal @db.Decimal(12, 2)
+
+  desposte Desposte @relation(fields: [desposteId], references: [id], onDelete: Cascade)
+  producto Producto @relation(fields: [productoId], references: [id])
+
+  @@map("items_desposte")
+}
+
+// --- Producción propia: recetas y órdenes de producción de embutidos ---
+
+model Receta {
+  id                  String  @id @default(uuid())
+  productoTerminadoId String  @unique @map("producto_terminado_id")
+  // Cantidad de producto terminado que rinde esta fórmula (ej. 10 = por cada 10 kg).
+  rindeCantidad       Decimal @map("rinde_cantidad") @db.Decimal(12, 3)
+  activa              Boolean @default(true)
+
+  productoTerminado Producto            @relation(fields: [productoTerminadoId], references: [id])
+  ingredientes      IngredienteReceta[]
+
+  @@map("recetas")
+}
+
+model IngredienteReceta {
+  id         String  @id @default(uuid())
+  recetaId   String  @map("receta_id")
+  productoId String  @map("producto_id")
+  // Cantidad del ingrediente, en su propia unidad, por el rinde base de la receta.
+  cantidad   Decimal @db.Decimal(12, 3)
+
+  receta   Receta   @relation(fields: [recetaId], references: [id], onDelete: Cascade)
+  producto Producto @relation(fields: [productoId], references: [id])
+
+  @@map("ingredientes_receta")
+}
+
+model OrdenProduccion {
+  id                  String   @id @default(uuid())
+  fecha               DateTime @default(now())
+  productoTerminadoId String   @map("producto_terminado_id")
+  cantidadProducida   Decimal  @map("cantidad_producida") @db.Decimal(12, 3)
+  costoTotal          Decimal  @map("costo_total") @db.Decimal(12, 2)
+  costoUnitario       Decimal  @map("costo_unitario") @db.Decimal(12, 2)
+  observaciones       String?
+
+  productoTerminado Producto         @relation(fields: [productoTerminadoId], references: [id])
+  items             ItemProduccion[]
+
+  @@map("ordenes_produccion")
+}
+
+model ItemProduccion {
+  id         String  @id @default(uuid())
+  ordenId    String  @map("orden_id")
+  productoId String  @map("producto_id")
+  cantidad   Decimal @db.Decimal(12, 3)
+  // Costo del ingrediente al momento de producir (snapshot).
+  costoUnitario Decimal @map("costo_unitario") @db.Decimal(12, 2)
+  subtotal      Decimal @db.Decimal(12, 2)
+
+  orden    OrdenProduccion @relation(fields: [ordenId], references: [id], onDelete: Cascade)
+  producto Producto        @relation(fields: [productoId], references: [id])
+
+  @@map("items_produccion")
 }

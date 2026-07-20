@@ -8,6 +8,7 @@ export interface ProductoRespuesta {
   stockActual: number;
   costoUnitarioReferencia: number;
   precioVentaReferencia: number;
+  seVende: boolean;
   activo: boolean;
   fechaCreacion: Date;
 }
@@ -21,6 +22,7 @@ export function aProductoRespuesta(producto: Producto): ProductoRespuesta {
     stockActual: producto.stockActual,
     costoUnitarioReferencia: producto.costoUnitarioReferencia,
     precioVentaReferencia: producto.precioVentaReferencia,
+    seVende: producto.seVende,
     activo: producto.activo,
     fechaCreacion: producto.fechaCreacion,
   };

@@ -45,6 +45,13 @@ export class ActualizarProductoDto {
   precioVentaReferencia?: number;
 
   @ApiPropertyOptional({
+    description: 'Si se vende al mostrador (true) o es insumo/corte interno (false)',
+  })
+  @IsOptional()
+  @IsBoolean({ message: 'El campo "se vende" debe ser verdadero o falso' })
+  seVende?: boolean;
+
+  @ApiPropertyOptional({
     description: 'Activar (true) o desactivar (false) el producto',
   })
   @IsOptional()

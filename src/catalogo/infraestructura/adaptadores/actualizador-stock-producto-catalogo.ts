@@ -14,7 +14,7 @@ export class ActualizadorStockProductoCatalogo extends ActualizadorStockProducto
     super();
   }
 
-  async registrarIngresoPorCompra(
+  async registrarIngreso(
     productoId: string,
     cantidad: number,
     costoUnitario: number,

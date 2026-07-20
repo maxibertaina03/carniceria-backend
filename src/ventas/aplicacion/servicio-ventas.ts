@@ -81,7 +81,7 @@ export class ServicioVentas {
       });
 
       for (const item of venta.items) {
-        await this.descontadorStock.descontarPorVenta(
+        await this.descontadorStock.descontar(
           item.productoId,
           item.cantidad,
           ctx,
