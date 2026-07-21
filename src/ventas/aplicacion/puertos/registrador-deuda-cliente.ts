@@ -18,4 +18,13 @@ export abstract class RegistradorDeudaCliente {
     fecha: Date,
     ctx?: ContextoTransaccion,
   ): Promise<void>;
+
+  // Al borrar una venta fiada: baja el saldo del cliente y elimina el
+  // movimiento CARGO de esa venta. Bloquea si el cliente ya pagó parte.
+  abstract revertirCargoPorVenta(
+    clienteId: string,
+    ventaId: string,
+    monto: number,
+    ctx?: ContextoTransaccion,
+  ): Promise<void>;
 }

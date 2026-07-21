@@ -12,6 +12,7 @@ import { RepositorioProducto } from '../dominio/repositorio-producto';
 export interface DatosActualizarProducto {
   nombre?: string;
   categoria?: CategoriaProducto;
+  subcategoria?: string;
   unidadMedida?: UnidadMedida;
   costoUnitarioReferencia?: number;
   precioVentaReferencia?: number;
@@ -55,6 +56,7 @@ export class ServicioProductos {
     producto.actualizarDatos({
       nombre: datos.nombre,
       categoria: datos.categoria,
+      subcategoria: datos.subcategoria,
       unidadMedida: datos.unidadMedida,
       seVende: datos.seVende,
     });

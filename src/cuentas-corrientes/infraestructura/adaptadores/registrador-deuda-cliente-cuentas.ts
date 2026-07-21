@@ -50,4 +50,19 @@ export class RegistradorDeudaClienteCuentas extends RegistradorDeudaCliente {
     await this.repositorio.guardar(cliente, ctx);
     await this.repositorio.agregarMovimiento(movimiento, ctx);
   }
+
+  async revertirCargoPorVenta(
+    clienteId: string,
+    ventaId: string,
+    monto: number,
+    ctx?: ContextoTransaccion,
+  ): Promise<void> {
+    const cliente = await this.repositorio.obtenerPorId(clienteId, ctx);
+    if (!cliente) {
+      throw new ClienteNoEncontradoException(clienteId);
+    }
+    cliente.revertirCargo(Dinero.desde(monto));
+    await this.repositorio.guardar(cliente, ctx);
+    await this.repositorio.eliminarMovimientosDeVenta(ventaId, ctx);
+  }
 }

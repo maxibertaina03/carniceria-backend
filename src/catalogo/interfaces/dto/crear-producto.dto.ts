@@ -28,6 +28,14 @@ export class CrearProductoDto {
   categoria: CategoriaProducto;
 
   @ApiPropertyOptional({
+    description: 'Subcategoría opcional (ej. base de la milanesa: "Cerdo")',
+    example: 'Cerdo',
+  })
+  @IsOptional()
+  @IsString({ message: 'La subcategoría debe ser un texto' })
+  subcategoria?: string;
+
+  @ApiPropertyOptional({
     description: 'Unidad de medida (KG por defecto)',
     enum: UNIDADES_MEDIDA,
     default: 'KG',

@@ -29,9 +29,10 @@ const productosIniciales: ProductoSemilla[] = [
   { nombre: 'Sal', categoria: 'INSUMOS', unidadMedida: 'GRAMO', seVende: false },
   { nombre: 'Pimienta', categoria: 'INSUMOS', unidadMedida: 'GRAMO', seVende: false },
   { nombre: 'Tripa', categoria: 'INSUMOS', unidadMedida: 'METRO', seVende: false },
-  // Cortes intermedios que salen del desposte y se usan para producir (no se venden).
-  { nombre: 'Carne para salame', categoria: 'VACUNO', seVende: false },
-  { nombre: 'Carne para chorizo', categoria: 'CERDO', seVende: false },
+  // Cortes intermedios que salen del desposte y se usan para producir. Van en
+  // INSUMOS para que aparezcan como ingredientes al armar recetas (no se venden).
+  { nombre: 'Carne para salame', categoria: 'INSUMOS', seVende: false },
+  { nombre: 'Carne para chorizo', categoria: 'INSUMOS', seVende: false },
 ];
 
 async function sembrar() {

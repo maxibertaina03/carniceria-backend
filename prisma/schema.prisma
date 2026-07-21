@@ -15,6 +15,8 @@ enum CategoriaProducto {
   CERDO
   AVE
   CHACINADOS
+  MILANESAS
+  HAMBURGUESAS
   INSUMOS
   OTROS
 
@@ -49,6 +51,8 @@ model Producto {
   id                      String            @id @default(uuid())
   nombre                  String
   categoria               CategoriaProducto
+  // Detalle opcional dentro de la categoría (ej. milanesa "de cerdo").
+  subcategoria            String?
   unidadMedida            UnidadMedida      @default(KG) @map("unidad_medida")
   stockActual             Decimal           @default(0) @map("stock_actual") @db.Decimal(12, 3)
   costoUnitarioReferencia Decimal           @default(0) @map("costo_unitario_referencia") @db.Decimal(12, 2)

@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ServicioCompras } from '../aplicacion/servicio-compras';
 import { RegistrarCompraDto } from './dto/registrar-compra.dto';
@@ -32,5 +40,15 @@ export class ComprasController {
   @ApiOperation({ summary: 'Ver el detalle de una compra' })
   obtener(@Param('id') id: string) {
     return this.servicio.obtener(id);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @ApiOperation({
+    summary:
+      'Eliminar una compra (revierte el stock que había sumado; se bloquea si ya se usó ese stock)',
+  })
+  async eliminar(@Param('id') id: string) {
+    await this.servicio.eliminar(id);
   }
 }

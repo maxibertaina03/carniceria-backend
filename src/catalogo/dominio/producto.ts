@@ -13,6 +13,7 @@ export interface PropiedadesProducto {
   id: string;
   nombre: string;
   categoria: CategoriaProducto;
+  subcategoria: string | null;
   unidadMedida: UnidadMedida;
   stockActual: number;
   costoUnitarioReferencia: number;
@@ -25,6 +26,7 @@ export interface PropiedadesProducto {
 export interface DatosNuevoProducto {
   nombre: string;
   categoria: CategoriaProducto;
+  subcategoria?: string;
   unidadMedida?: UnidadMedida;
   costoUnitarioReferencia?: number;
   precioVentaReferencia?: number;
@@ -40,6 +42,7 @@ export class Producto {
       id: randomUUID(),
       nombre: Producto.validarNombre(datos.nombre),
       categoria: datos.categoria,
+      subcategoria: datos.subcategoria?.trim() || null,
       unidadMedida: datos.unidadMedida ?? 'KG',
       stockActual: 0,
       costoUnitarioReferencia: Dinero.desde(
@@ -76,6 +79,9 @@ export class Producto {
   }
   get categoria() {
     return this.props.categoria;
+  }
+  get subcategoria() {
+    return this.props.subcategoria;
   }
   get unidadMedida() {
     return this.props.unidadMedida;
@@ -133,6 +139,7 @@ export class Producto {
   actualizarDatos(datos: {
     nombre?: string;
     categoria?: CategoriaProducto;
+    subcategoria?: string | null;
     unidadMedida?: UnidadMedida;
     seVende?: boolean;
   }): void {
@@ -141,6 +148,10 @@ export class Producto {
     }
     if (datos.categoria !== undefined) {
       this.props.categoria = datos.categoria;
+    }
+    if (datos.subcategoria !== undefined) {
+      this.props.subcategoria =
+        datos.subcategoria === null ? null : datos.subcategoria.trim() || null;
     }
     if (datos.unidadMedida !== undefined) {
       this.props.unidadMedida = datos.unidadMedida;

@@ -57,6 +57,16 @@ export class ClientesController {
     await this.servicio.desactivar(id);
   }
 
+  @Delete(':id/definitivo')
+  @HttpCode(204)
+  @ApiOperation({
+    summary:
+      'Borrar un cliente definitivamente (solo si no tiene ventas ni movimientos)',
+  })
+  async eliminarDefinitivo(@Param('id') id: string) {
+    await this.servicio.eliminarDefinitivo(id);
+  }
+
   @Get(':id/movimientos')
   @ApiOperation({
     summary: 'Historial completo de la cuenta: cargos (ventas fiadas) y pagos',

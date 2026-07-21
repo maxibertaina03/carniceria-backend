@@ -43,6 +43,7 @@ export class RepositorioProductoPrisma extends RepositorioProducto {
     const datos = {
       nombre: producto.nombre,
       categoria: producto.categoria,
+      subcategoria: producto.subcategoria,
       unidadMedida: producto.unidadMedida,
       stockActual: producto.stockActual,
       costoUnitarioReferencia: producto.costoUnitarioReferencia,
@@ -63,6 +64,7 @@ export class RepositorioProductoPrisma extends RepositorioProducto {
       id: fila.id,
       nombre: fila.nombre,
       categoria: fila.categoria as CategoriaProducto,
+      subcategoria: fila.subcategoria,
       unidadMedida: fila.unidadMedida as UnidadMedida,
       stockActual: Number(fila.stockActual),
       costoUnitarioReferencia: Number(fila.costoUnitarioReferencia),

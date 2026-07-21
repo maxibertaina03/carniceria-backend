@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { AjustadorStockProducto } from '../../catalogo/aplicacion/puertos/ajustador-stock-producto';
 import { UnidadDeTrabajo } from '../../comun/aplicacion/unidad-de-trabajo';
 import { LectorProductosCatalogo } from '../../catalogo/aplicacion/puertos/lector-productos-catalogo';
 import {
@@ -34,6 +35,7 @@ export class ServicioVentas {
     private readonly lectorProductos: LectorProductosCatalogo,
     private readonly descontadorStock: DescontadorStockProducto,
     private readonly registradorDeuda: RegistradorDeudaCliente,
+    private readonly ajustadorStock: AjustadorStockProducto,
   ) {}
 
   // Registra la venta en una única transacción: descuenta stock (se bloquea
@@ -116,5 +118,29 @@ export class ServicioVentas {
       throw new VentaNoEncontradaException(id);
     }
     return venta;
+  }
+
+  // Elimina la venta revirtiéndola: devuelve el stock de cada producto y, si
+  // era fiada, revierte el cargo del cliente (bloquea si ya pagó parte).
+  async eliminar(id: string): Promise<void> {
+    const venta = await this.obtener(id);
+    await this.unidadDeTrabajo.ejecutar(async (ctx) => {
+      if (venta.montoFiado > 0 && venta.clienteId) {
+        await this.registradorDeuda.revertirCargoPorVenta(
+          venta.clienteId,
+          venta.id,
+          venta.montoFiado,
+          ctx,
+        );
+      }
+      for (const item of venta.items) {
+        await this.ajustadorStock.aumentarStock(
+          item.productoId,
+          item.cantidad,
+          ctx,
+        );
+      }
+      await this.repositorio.eliminar(id, ctx);
+    });
   }
 }

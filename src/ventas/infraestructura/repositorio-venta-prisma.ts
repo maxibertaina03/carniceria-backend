@@ -35,4 +35,10 @@ export class RepositorioVentaPrisma extends RepositorioVenta {
       },
     });
   }
+
+  async eliminar(id: string, ctx?: ContextoTransaccion): Promise<void> {
+    // Los items_venta se borran por onDelete: Cascade. Los movimientos de la
+    // cuenta corriente se eliminan aparte al revertir el cargo del cliente.
+    await clienteDeContexto(this.prisma, ctx).venta.delete({ where: { id } });
+  }
 }

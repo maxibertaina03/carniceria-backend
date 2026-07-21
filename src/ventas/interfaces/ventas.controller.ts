@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ServicioVentas } from '../aplicacion/servicio-ventas';
 import { RegistrarVentaDto } from './dto/registrar-venta.dto';
@@ -33,5 +41,15 @@ export class VentasController {
   @ApiOperation({ summary: 'Ver el detalle de una venta con su ganancia' })
   obtener(@Param('id') id: string) {
     return this.servicio.obtener(id);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @ApiOperation({
+    summary:
+      'Eliminar una venta (devuelve el stock y, si era fiada, revierte la deuda del cliente)',
+  })
+  async eliminar(@Param('id') id: string) {
+    await this.servicio.eliminar(id);
   }
 }

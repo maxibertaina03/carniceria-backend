@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { UnidadDeTrabajo } from '../../comun/aplicacion/unidad-de-trabajo';
 import { Dinero } from '../../comun/dominio/dinero';
 import { Cliente } from '../dominio/cliente';
-import { ClienteNoEncontradoException } from '../dominio/excepciones';
+import {
+  ClienteInvalidoException,
+  ClienteNoEncontradoException,
+} from '../dominio/excepciones';
 import { MovimientoCuenta } from '../dominio/movimiento-cuenta';
 import { RepositorioCliente } from '../dominio/repositorio-cliente';
 
@@ -53,6 +56,19 @@ export class ServicioClientes {
     const cliente = await this.obtener(id);
     cliente.desactivar();
     await this.repositorio.guardar(cliente);
+  }
+
+  // Borra el cliente definitivamente. Solo se permite si no tiene historial
+  // (ni ventas ni movimientos de cuenta); si lo tiene, se bloquea y conviene
+  // desactivarlo en su lugar.
+  async eliminarDefinitivo(id: string): Promise<void> {
+    await this.obtener(id);
+    if (await this.repositorio.tieneHistorial(id)) {
+      throw new ClienteInvalidoException(
+        'Este cliente tiene ventas o movimientos registrados, no se puede borrar. Podés desactivarlo.',
+      );
+    }
+    await this.repositorio.eliminar(id);
   }
 
   async obtenerMovimientos(

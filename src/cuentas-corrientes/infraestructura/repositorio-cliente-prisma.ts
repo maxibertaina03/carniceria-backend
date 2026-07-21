@@ -77,6 +77,30 @@ export class RepositorioClientePrisma extends RepositorioCliente {
     return filas.map((fila) => this.movimientoADominio(fila));
   }
 
+  async eliminarMovimientosDeVenta(
+    ventaId: string,
+    ctx?: ContextoTransaccion,
+  ): Promise<void> {
+    await clienteDeContexto(this.prisma, ctx).movimientoCuenta.deleteMany({
+      where: { ventaId },
+    });
+  }
+
+  async tieneHistorial(clienteId: string): Promise<boolean> {
+    const movimientos = await this.prisma.movimientoCuenta.count({
+      where: { clienteId },
+    });
+    if (movimientos > 0) {
+      return true;
+    }
+    const ventas = await this.prisma.venta.count({ where: { clienteId } });
+    return ventas > 0;
+  }
+
+  async eliminar(id: string): Promise<void> {
+    await this.prisma.cliente.delete({ where: { id } });
+  }
+
   private aDominio(fila: ClientePrisma): Cliente {
     return Cliente.reconstruir({
       id: fila.id,

@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ServicioDesposte } from '../aplicacion/servicio-desposte';
 import { RegistrarDesposteDto } from './dto/registrar-desposte.dto';
@@ -34,5 +42,15 @@ export class DespostesController {
   @ApiOperation({ summary: 'Ver el detalle de un desposte' })
   obtener(@Param('id') id: string) {
     return this.servicio.obtener(id);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @ApiOperation({
+    summary:
+      'Eliminar un desposte (revierte el stock de los cortes; se bloquea si ya se usaron)',
+  })
+  async eliminar(@Param('id') id: string) {
+    await this.servicio.eliminar(id);
   }
 }

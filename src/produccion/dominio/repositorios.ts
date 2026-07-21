@@ -21,4 +21,6 @@ export abstract class RepositorioOrdenProduccion {
     orden: OrdenProduccion,
     ctx?: ContextoTransaccion,
   ): Promise<void>;
+
+  abstract eliminar(id: string, ctx?: ContextoTransaccion): Promise<void>;
 }

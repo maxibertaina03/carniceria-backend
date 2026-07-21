@@ -35,4 +35,11 @@ export class RepositorioOrdenProduccionPrisma extends RepositorioOrdenProduccion
       },
     });
   }
+
+  async eliminar(id: string, ctx?: ContextoTransaccion): Promise<void> {
+    // Los items_produccion se borran por onDelete: Cascade.
+    await clienteDeContexto(this.prisma, ctx).ordenProduccion.delete({
+      where: { id },
+    });
+  }
 }

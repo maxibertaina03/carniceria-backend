@@ -108,6 +108,19 @@ export class Cliente {
     return MovimientoCuenta.pago(this.props.id, monto, { observaciones });
   }
 
+  // Revierte un cargo (al borrar la venta fiada que lo generó). Se bloquea si
+  // el cliente ya pagó parte, porque el saldo no alcanzaría para revertirlo.
+  revertirCargo(monto: Dinero): void {
+    if (monto.monto > this.props.saldoDeudor) {
+      throw new ClienteInvalidoException(
+        `No se puede borrar esta venta fiada: "${this.props.nombre}" ya pagó parte de su deuda. Primero ajustá los pagos.`,
+      );
+    }
+    this.props.saldoDeudor = redondearMoneda(
+      this.props.saldoDeudor - monto.monto,
+    );
+  }
+
   desactivar(): void {
     if (this.props.saldoDeudor > 0) {
       throw new ClienteInvalidoException(

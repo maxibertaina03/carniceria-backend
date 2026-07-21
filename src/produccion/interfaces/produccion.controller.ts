@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ServicioProduccion } from '../aplicacion/servicio-produccion';
 import { RegistrarProduccionDto } from './dto/registrar-produccion.dto';
@@ -32,5 +40,15 @@ export class ProduccionController {
   @ApiOperation({ summary: 'Ver el detalle de una producción con su costo' })
   obtener(@Param('id') id: string) {
     return this.servicio.obtener(id);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @ApiOperation({
+    summary:
+      'Eliminar una producción (devuelve los ingredientes al stock y quita el terminado; se bloquea si el terminado ya se vendió)',
+  })
+  async eliminar(@Param('id') id: string) {
+    await this.servicio.eliminar(id);
   }
 }

@@ -4,6 +4,7 @@ export interface ProductoRespuesta {
   id: string;
   nombre: string;
   categoria: string;
+  subcategoria: string | null;
   unidadMedida: string;
   stockActual: number;
   costoUnitarioReferencia: number;
@@ -18,6 +19,7 @@ export function aProductoRespuesta(producto: Producto): ProductoRespuesta {
     id: producto.id,
     nombre: producto.nombre,
     categoria: producto.categoria,
+    subcategoria: producto.subcategoria,
     unidadMedida: producto.unidadMedida,
     stockActual: producto.stockActual,
     costoUnitarioReferencia: producto.costoUnitarioReferencia,

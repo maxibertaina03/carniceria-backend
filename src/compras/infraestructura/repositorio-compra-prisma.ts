@@ -30,4 +30,9 @@ export class RepositorioCompraPrisma extends RepositorioCompra {
       },
     });
   }
+
+  async eliminar(id: string, ctx?: ContextoTransaccion): Promise<void> {
+    // Los items_compra se borran por onDelete: Cascade.
+    await clienteDeContexto(this.prisma, ctx).compra.delete({ where: { id } });
+  }
 }

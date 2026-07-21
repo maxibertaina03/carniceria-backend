@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { LectorProductosCatalogo } from '../../catalogo/aplicacion/puertos/lector-productos-catalogo';
 import { UnidadDeTrabajo } from '../../comun/aplicacion/unidad-de-trabajo';
 import { ActualizadorStockProducto } from '../../compras/aplicacion/puertos/actualizador-stock-producto';
+import { DescontadorStockProducto } from '../../ventas/aplicacion/puertos/descontador-stock-producto';
 import { Desposte } from '../dominio/desposte';
 import {
   DesposteInvalidoException,
@@ -27,6 +28,7 @@ export class ServicioDesposte {
     private readonly consulta: ConsultaDespostes,
     private readonly lectorProductos: LectorProductosCatalogo,
     private readonly actualizadorStock: ActualizadorStockProducto,
+    private readonly descontadorStock: DescontadorStockProducto,
   ) {}
 
   // Registra el desposte y, en la misma transacción, suma cada corte al stock
@@ -85,5 +87,17 @@ export class ServicioDesposte {
       throw new DesposteNoEncontradoException(id);
     }
     return desposte;
+  }
+
+  // Elimina el desposte revirtiendo el ingreso de cada corte al stock. Si algún
+  // corte ya no tiene ese stock (se vendió/usó), el descontador bloquea.
+  async eliminar(id: string): Promise<void> {
+    const desposte = await this.obtener(id);
+    await this.unidadDeTrabajo.ejecutar(async (ctx) => {
+      for (const corte of desposte.cortes) {
+        await this.descontadorStock.descontar(corte.productoId, corte.cantidad, ctx);
+      }
+      await this.repositorio.eliminar(id, ctx);
+    });
   }
 }

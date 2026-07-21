@@ -32,4 +32,9 @@ export class RepositorioDespostePrisma extends RepositorioDesposte {
       },
     });
   }
+
+  async eliminar(id: string, ctx?: ContextoTransaccion): Promise<void> {
+    // Los items_desposte se borran por onDelete: Cascade.
+    await clienteDeContexto(this.prisma, ctx).desposte.delete({ where: { id } });
+  }
 }

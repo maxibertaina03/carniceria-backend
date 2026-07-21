@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { AjustadorStockProducto } from '../../catalogo/aplicacion/puertos/ajustador-stock-producto';
 import { LectorProductosCatalogo } from '../../catalogo/aplicacion/puertos/lector-productos-catalogo';
 import { UnidadDeTrabajo } from '../../comun/aplicacion/unidad-de-trabajo';
 import { ActualizadorStockProducto } from '../../compras/aplicacion/puertos/actualizador-stock-producto';
@@ -32,6 +33,7 @@ export class ServicioProduccion {
     private readonly lectorProductos: LectorProductosCatalogo,
     private readonly descontadorStock: DescontadorStockProducto,
     private readonly actualizadorStock: ActualizadorStockProducto,
+    private readonly ajustadorStock: AjustadorStockProducto,
   ) {}
 
   // Registra una producción en una única transacción: descuenta el stock de
@@ -114,5 +116,26 @@ export class ServicioProduccion {
       throw new OrdenProduccionNoEncontradaException(id);
     }
     return orden;
+  }
+
+  // Elimina una producción revirtiéndola: descuenta del stock el producto
+  // terminado (bloquea si ya se vendió) y devuelve al stock cada ingrediente.
+  async eliminar(id: string): Promise<void> {
+    const orden = await this.obtener(id);
+    await this.unidadDeTrabajo.ejecutar(async (ctx) => {
+      await this.descontadorStock.descontar(
+        orden.productoTerminadoId,
+        orden.cantidadProducida,
+        ctx,
+      );
+      for (const item of orden.items) {
+        await this.ajustadorStock.aumentarStock(
+          item.productoId,
+          item.cantidad,
+          ctx,
+        );
+      }
+      await this.repositorioOrden.eliminar(id, ctx);
+    });
   }
 }

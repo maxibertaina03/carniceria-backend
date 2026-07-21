@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UnidadDeTrabajo } from '../../comun/aplicacion/unidad-de-trabajo';
 import { LectorProductosCatalogo } from '../../catalogo/aplicacion/puertos/lector-productos-catalogo';
+import { DescontadorStockProducto } from '../../ventas/aplicacion/puertos/descontador-stock-producto';
 import { Compra, ItemCompra } from '../dominio/compra';
 import {
   CompraInvalidaException,
@@ -25,6 +26,7 @@ export class ServicioCompras {
     private readonly consulta: ConsultaCompras,
     private readonly lectorProductos: LectorProductosCatalogo,
     private readonly actualizadorStock: ActualizadorStockProducto,
+    private readonly descontadorStock: DescontadorStockProducto,
   ) {}
 
   // Registra la compra y, en la misma transacción, suma stock y actualiza
@@ -89,5 +91,18 @@ export class ServicioCompras {
       throw new CompraNoEncontradaException(id);
     }
     return compra;
+  }
+
+  // Elimina la compra revirtiendo su ingreso: descuenta del stock lo que había
+  // sumado. Si algún producto ya no tiene ese stock (se vendió/usó), el
+  // descontador bloquea y la eliminación se cancela entera.
+  async eliminar(id: string): Promise<void> {
+    const compra = await this.obtener(id);
+    await this.unidadDeTrabajo.ejecutar(async (ctx) => {
+      for (const item of compra.items) {
+        await this.descontadorStock.descontar(item.productoId, item.cantidad, ctx);
+      }
+      await this.repositorio.eliminar(id, ctx);
+    });
   }
 }

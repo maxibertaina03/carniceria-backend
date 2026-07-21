@@ -25,6 +25,11 @@ export class ActualizarProductoDto {
   })
   categoria?: CategoriaProducto;
 
+  @ApiPropertyOptional({ description: 'Subcategoría opcional (texto libre)' })
+  @IsOptional()
+  @IsString({ message: 'La subcategoría debe ser un texto' })
+  subcategoria?: string;
+
   @ApiPropertyOptional({ description: 'Unidad de medida', enum: UNIDADES_MEDIDA })
   @IsOptional()
   @IsIn(UNIDADES_MEDIDA, {
