@@ -15,6 +15,7 @@ import {
   ConsultasProduccion,
   OrdenProduccionDetalle,
 } from './puertos/consultas-produccion';
+import { RecalculadorCostos } from './puertos/recalculador-costos';
 
 export interface DatosRegistrarProduccion {
   productoTerminadoId: string;
@@ -34,6 +35,7 @@ export class ServicioProduccion {
     private readonly descontadorStock: DescontadorStockProducto,
     private readonly actualizadorStock: ActualizadorStockProducto,
     private readonly ajustadorStock: AjustadorStockProducto,
+    private readonly recalculador: RecalculadorCostos,
   ) {}
 
   // Registra una producción en una única transacción: descuenta el stock de
@@ -103,6 +105,8 @@ export class ServicioProduccion {
       return orden.id;
     });
 
+    // Un producto terminado puede ser ingrediente de otra receta: recalcular.
+    await this.recalculador.recalcularTodos();
     return this.obtener(ordenId);
   }
 

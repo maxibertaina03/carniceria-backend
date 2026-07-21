@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { LectorProductosCatalogo } from '../../catalogo/aplicacion/puertos/lector-productos-catalogo';
 import { UnidadDeTrabajo } from '../../comun/aplicacion/unidad-de-trabajo';
 import { ActualizadorStockProducto } from '../../compras/aplicacion/puertos/actualizador-stock-producto';
+import { RecalculadorCostos } from '../../produccion/aplicacion/puertos/recalculador-costos';
 import { DescontadorStockProducto } from '../../ventas/aplicacion/puertos/descontador-stock-producto';
 import { Desposte } from '../dominio/desposte';
 import {
@@ -29,6 +30,7 @@ export class ServicioDesposte {
     private readonly lectorProductos: LectorProductosCatalogo,
     private readonly actualizadorStock: ActualizadorStockProducto,
     private readonly descontadorStock: DescontadorStockProducto,
+    private readonly recalculador: RecalculadorCostos,
   ) {}
 
   // Registra el desposte y, en la misma transacción, suma cada corte al stock
@@ -74,6 +76,8 @@ export class ServicioDesposte {
       return desposte.id;
     });
 
+    // Despostar fija el costo de los cortes (ej. carne para salame) → recalcular.
+    await this.recalculador.recalcularTodos();
     return this.obtener(desposteId);
   }
 

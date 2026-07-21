@@ -8,13 +8,28 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RecalculadorCostos } from '../aplicacion/puertos/recalculador-costos';
 import { ServicioProduccion } from '../aplicacion/servicio-produccion';
 import { RegistrarProduccionDto } from './dto/registrar-produccion.dto';
 
 @ApiTags('Producción - Órdenes')
 @Controller('produccion')
 export class ProduccionController {
-  constructor(private readonly servicio: ServicioProduccion) {}
+  constructor(
+    private readonly servicio: ServicioProduccion,
+    private readonly recalculador: RecalculadorCostos,
+  ) {}
+
+  @Post('recalcular-costos')
+  @HttpCode(200)
+  @ApiOperation({
+    summary:
+      'Recalcular el costo de los productos producidos según el precio actual de sus insumos',
+  })
+  async recalcularCostos() {
+    await this.recalculador.recalcularTodos();
+    return { ok: true };
+  }
 
   @Post()
   @ApiOperation({

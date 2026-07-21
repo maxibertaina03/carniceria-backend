@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cantidad } from '../../../comun/dominio/cantidad';
 import { ContextoTransaccion } from '../../../comun/dominio/contexto-transaccion';
+import { Dinero } from '../../../comun/dominio/dinero';
 import { AjustadorStockProducto } from '../../aplicacion/puertos/ajustador-stock-producto';
 import { ProductoNoEncontradoException } from '../../dominio/excepciones';
 import { RepositorioProducto } from '../../dominio/repositorio-producto';
@@ -21,6 +22,19 @@ export class AjustadorStockProductoCatalogo extends AjustadorStockProducto {
       throw new ProductoNoEncontradoException(productoId);
     }
     producto.aumentarStock(Cantidad.desde(cantidad, producto.unidadMedida));
+    await this.repositorio.guardar(producto, ctx);
+  }
+
+  async fijarCostoReferencia(
+    productoId: string,
+    costo: number,
+    ctx?: ContextoTransaccion,
+  ): Promise<void> {
+    const producto = await this.repositorio.obtenerPorId(productoId, ctx);
+    if (!producto) {
+      throw new ProductoNoEncontradoException(productoId);
+    }
+    producto.actualizarPreciosReferencia(Dinero.desde(costo));
     await this.repositorio.guardar(producto, ctx);
   }
 }

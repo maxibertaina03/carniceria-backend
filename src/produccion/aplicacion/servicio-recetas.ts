@@ -7,6 +7,7 @@ import {
   ConsultasProduccion,
   RecetaDetalle,
 } from './puertos/consultas-produccion';
+import { RecalculadorCostos } from './puertos/recalculador-costos';
 
 export interface DatosReceta {
   productoTerminadoId: string;
@@ -20,6 +21,7 @@ export class ServicioRecetas {
     private readonly repositorio: RepositorioReceta,
     private readonly consultas: ConsultasProduccion,
     private readonly lectorProductos: LectorProductosCatalogo,
+    private readonly recalculador: RecalculadorCostos,
   ) {}
 
   listar(): Promise<RecetaDetalle[]> {
@@ -45,6 +47,8 @@ export class ServicioRecetas {
       : Receta.crear(datos);
 
     await this.repositorio.guardar(receta);
+    // La receta define el costo del producto: recalcular al guardarla.
+    await this.recalculador.recalcularTodos();
     const detalle = await this.consultas.obtenerRecetaPorProducto(
       datos.productoTerminadoId,
     );
@@ -53,6 +57,7 @@ export class ServicioRecetas {
 
   async eliminar(productoTerminadoId: string): Promise<void> {
     await this.repositorio.eliminar(productoTerminadoId);
+    await this.recalculador.recalcularTodos();
   }
 
   private async verificarProductosExisten(datos: DatosReceta): Promise<void> {

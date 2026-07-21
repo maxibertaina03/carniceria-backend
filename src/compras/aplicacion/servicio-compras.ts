@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UnidadDeTrabajo } from '../../comun/aplicacion/unidad-de-trabajo';
 import { LectorProductosCatalogo } from '../../catalogo/aplicacion/puertos/lector-productos-catalogo';
+import { RecalculadorCostos } from '../../produccion/aplicacion/puertos/recalculador-costos';
 import { DescontadorStockProducto } from '../../ventas/aplicacion/puertos/descontador-stock-producto';
 import { Compra, ItemCompra } from '../dominio/compra';
 import {
@@ -27,6 +28,7 @@ export class ServicioCompras {
     private readonly lectorProductos: LectorProductosCatalogo,
     private readonly actualizadorStock: ActualizadorStockProducto,
     private readonly descontadorStock: DescontadorStockProducto,
+    private readonly recalculador: RecalculadorCostos,
   ) {}
 
   // Registra la compra y, en la misma transacción, suma stock y actualiza
@@ -78,6 +80,8 @@ export class ServicioCompras {
       return compra.id;
     });
 
+    // Comprar insumos cambia su costo → recalcular el costo de lo que se produce.
+    await this.recalculador.recalcularTodos();
     return this.obtener(compraId);
   }
 

@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { CatalogoModule } from '../catalogo/catalogo.module';
 import { ConsultasProduccion } from './aplicacion/puertos/consultas-produccion';
+import { RecalculadorCostos } from './aplicacion/puertos/recalculador-costos';
+import { ServicioCostosProducidos } from './aplicacion/servicio-costos-producidos';
 import { ServicioProduccion } from './aplicacion/servicio-produccion';
 import { ServicioRecetas } from './aplicacion/servicio-recetas';
 import {
@@ -19,9 +21,12 @@ import { RecetasController } from './interfaces/recetas.controller';
   providers: [
     ServicioRecetas,
     ServicioProduccion,
+    { provide: RecalculadorCostos, useClass: ServicioCostosProducidos },
     { provide: RepositorioReceta, useClass: RepositorioRecetaPrisma },
     { provide: RepositorioOrdenProduccion, useClass: RepositorioOrdenProduccionPrisma },
     { provide: ConsultasProduccion, useClass: ConsultasProduccionPrisma },
   ],
+  // Compras y Desposte usan el recálculo cuando cambian costos de insumos.
+  exports: [RecalculadorCostos],
 })
 export class ProduccionModule {}
