@@ -19,6 +19,8 @@ export interface RecetaDetalle {
 export interface ItemProduccionDetalle {
   productoId: string;
   productoNombre: string;
+  // Unidad del ingrediente (ej. GRAMO para la sal) para mostrar bien la cantidad.
+  unidadMedida: string;
   cantidad: number;
   costoUnitario: number;
   subtotal: number;
@@ -29,6 +31,8 @@ export interface OrdenProduccionDetalle {
   fecha: Date;
   productoTerminadoId: string;
   productoTerminadoNombre: string;
+  // Unidad del producto terminado (KG para embutidos, UNIDAD para hamburguesas).
+  productoTerminadoUnidad: string;
   cantidadProducida: number;
   costoTotal: number;
   costoUnitario: number;

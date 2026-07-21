@@ -57,6 +57,7 @@ export class ConsultaVentasPrisma extends ConsultaVentas {
         id: item.id,
         productoId: item.productoId,
         productoNombre: item.producto.nombre,
+        unidadMedida: item.producto.unidadMedida,
         cantidad: Number(item.cantidad),
         precioUnitarioVenta: Number(item.precioUnitarioVenta),
         costoUnitario: Number(item.costoUnitario),

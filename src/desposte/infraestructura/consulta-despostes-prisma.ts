@@ -44,6 +44,7 @@ export class ConsultaDespostesPrisma extends ConsultaDespostes {
         id: corte.id,
         productoId: corte.productoId,
         productoNombre: corte.producto.nombre,
+        unidadMedida: corte.producto.unidadMedida,
         cantidad: Number(corte.cantidad),
         valorReferencia: Number(corte.valorReferencia),
         costoUnitario: Number(corte.costoUnitario),

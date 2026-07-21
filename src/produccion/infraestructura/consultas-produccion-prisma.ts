@@ -97,6 +97,7 @@ export class ConsultasProduccionPrisma extends ConsultasProduccion {
       fecha: fila.fecha,
       productoTerminadoId: fila.productoTerminadoId,
       productoTerminadoNombre: fila.productoTerminado.nombre,
+      productoTerminadoUnidad: fila.productoTerminado.unidadMedida,
       cantidadProducida: Number(fila.cantidadProducida),
       costoTotal: Number(fila.costoTotal),
       costoUnitario: Number(fila.costoUnitario),
@@ -104,6 +105,7 @@ export class ConsultasProduccionPrisma extends ConsultasProduccion {
       items: fila.items.map((item) => ({
         productoId: item.productoId,
         productoNombre: item.producto.nombre,
+        unidadMedida: item.producto.unidadMedida,
         cantidad: Number(item.cantidad),
         costoUnitario: Number(item.costoUnitario),
         subtotal: Number(item.subtotal),

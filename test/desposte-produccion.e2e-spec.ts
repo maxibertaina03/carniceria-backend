@@ -112,7 +112,7 @@ describe('Desposte y Producción (e2e)', () => {
   });
 
   it('se compran los insumos (sal y tripa)', async () => {
-    await request(app.getHttpServer())
+    const compra = await request(app.getHttpServer())
       .post('/compras')
       .send({
         proveedor: 'Distribuidora',
@@ -124,6 +124,21 @@ describe('Desposte y Producción (e2e)', () => {
       .expect(201);
     expect(await stockDe(salId)).toBe(1000);
     expect(await stockDe(tripaId)).toBe(100);
+
+    // Cada línea informa la unidad del producto, para que la pantalla no
+    // muestre gramos o metros como si fueran kilos.
+    const unidades = compra.body.items.map(
+      (item: { productoNombre: string; unidadMedida: string }) => [
+        item.productoNombre,
+        item.unidadMedida,
+      ],
+    );
+    expect(unidades).toEqual(
+      expect.arrayContaining([
+        ['Sal', 'GRAMO'],
+        ['Tripa', 'METRO'],
+      ]),
+    );
   });
 
   it('se carga la receta del salame', async () => {
@@ -159,6 +174,12 @@ describe('Desposte y Producción (e2e)', () => {
 
     expect(res.body.costoTotal).toBe(205000);
     expect(res.body.costoUnitario).toBe(10250);
+    // La orden informa la unidad del terminado y la de cada ingrediente.
+    expect(res.body.productoTerminadoUnidad).toBe('KG');
+    const sal = res.body.items.find(
+      (item: { productoNombre: string }) => item.productoNombre === 'Sal',
+    );
+    expect(sal.unidadMedida).toBe('GRAMO');
 
     expect(await stockDe(carneSalameId)).toBe(10); // 30 - 20
     expect(await stockDe(salId)).toBe(800); // 1000 - 200

@@ -3,6 +3,8 @@ export interface CorteDetalle {
   id: string;
   productoId: string;
   productoNombre: string;
+  // Unidad del corte (normalmente KG) para mostrar bien la cantidad.
+  unidadMedida: string;
   cantidad: number;
   valorReferencia: number;
   costoUnitario: number;

@@ -3,6 +3,8 @@ export interface ItemVentaDetalle {
   id: string;
   productoId: string;
   productoNombre: string;
+  // Unidad del producto (KG, GRAMO, METRO, UNIDAD) para mostrar bien la cantidad.
+  unidadMedida: string;
   cantidad: number;
   precioUnitarioVenta: number;
   costoUnitario: number;
