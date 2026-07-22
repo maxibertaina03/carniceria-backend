@@ -46,6 +46,33 @@ describe('Flujo completo de la carnicería (e2e)', () => {
     expect(respuesta.body.unidadMedida).toBe('KG');
   });
 
+  it('se puede crear un producto con stock inicial y ajustarlo después', async () => {
+    // Al empezar a usar el sistema ya hay mercadería en la heladera.
+    const creado = await request(app.getHttpServer())
+      .post('/productos')
+      .send({
+        nombre: 'Costeleta',
+        categoria: 'CERDO',
+        stockInicial: 15,
+        costoUnitarioReferencia: 7000,
+      })
+      .expect(201);
+    expect(creado.body.stockActual).toBe(15);
+
+    // Después de contar, se corrige a la cantidad real (reemplaza, no suma).
+    const ajustado = await request(app.getHttpServer())
+      .post(`/productos/${creado.body.id}/ajustar-stock`)
+      .send({ cantidad: 12.5 })
+      .expect(201);
+    expect(ajustado.body.stockActual).toBe(12.5);
+
+    // No se puede dejar el stock en negativo.
+    await request(app.getHttpServer())
+      .post(`/productos/${creado.body.id}/ajustar-stock`)
+      .send({ cantidad: -2 })
+      .expect(400);
+  });
+
   it('rechaza un producto con nombre duplicado', async () => {
     const respuesta = await request(app.getHttpServer())
       .post('/productos')

@@ -31,6 +31,8 @@ export interface DatosNuevoProducto {
   costoUnitarioReferencia?: number;
   precioVentaReferencia?: number;
   seVende?: boolean;
+  // Cuánto hay hoy de este producto al darlo de alta (opcional).
+  stockInicial?: number;
 }
 
 // Aggregate root del catálogo: qué se vende y cuánto stock hay.
@@ -44,7 +46,7 @@ export class Producto {
       categoria: datos.categoria,
       subcategoria: datos.subcategoria?.trim() || null,
       unidadMedida: datos.unidadMedida ?? 'KG',
-      stockActual: 0,
+      stockActual: Producto.validarStock(datos.stockInicial ?? 0),
       costoUnitarioReferencia: Dinero.desde(
         datos.costoUnitarioReferencia ?? 0,
       ).monto,
@@ -59,6 +61,16 @@ export class Producto {
 
   static reconstruir(props: PropiedadesProducto): Producto {
     return new Producto({ ...props });
+  }
+
+  // El stock nunca puede ser negativo, ni al darlo de alta ni al ajustarlo.
+  private static validarStock(cantidad: number): number {
+    if (!Number.isFinite(cantidad) || cantidad < 0) {
+      throw new ProductoInvalidoException(
+        'El stock no puede ser negativo',
+      );
+    }
+    return redondearCantidad(cantidad);
   }
 
   private static validarNombre(nombre: string): string {
@@ -125,6 +137,13 @@ export class Producto {
     this.props.stockActual = redondearCantidad(
       this.props.stockActual - cantidad.valor,
     );
+  }
+
+  // Deja el stock en la cantidad indicada (ej. después de contar lo que hay
+  // en la heladera). No es un movimiento de compra ni de venta: es una
+  // corrección de inventario.
+  ajustarStock(cantidad: number): void {
+    this.props.stockActual = Producto.validarStock(cantidad);
   }
 
   actualizarPreciosReferencia(costo?: Dinero, precioVenta?: Dinero): void {

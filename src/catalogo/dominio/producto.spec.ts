@@ -14,6 +14,39 @@ describe('Producto (aggregate root)', () => {
     expect(producto.unidadMedida).toBe('KG');
   });
 
+  it('se puede dar de alta con un stock inicial', () => {
+    // Al empezar a usar el sistema: "de asado hoy tengo 15 kg".
+    const producto = Producto.crear({
+      nombre: 'Asado',
+      categoria: 'VACUNO',
+      stockInicial: 15,
+    });
+    expect(producto.stockActual).toBe(15);
+  });
+
+  it('rechaza un stock inicial negativo', () => {
+    expect(() =>
+      Producto.crear({ nombre: 'Asado', categoria: 'VACUNO', stockInicial: -3 }),
+    ).toThrow(ProductoInvalidoException);
+  });
+
+  it('ajustar stock deja la cantidad contada (no la suma)', () => {
+    const producto = Producto.crear({
+      nombre: 'Asado',
+      categoria: 'VACUNO',
+      stockInicial: 15,
+    });
+    producto.ajustarStock(12.5);
+    expect(producto.stockActual).toBe(12.5);
+    producto.ajustarStock(0);
+    expect(producto.stockActual).toBe(0);
+  });
+
+  it('no permite ajustar el stock a un valor negativo', () => {
+    const producto = Producto.crear({ nombre: 'Asado', categoria: 'VACUNO' });
+    expect(() => producto.ajustarStock(-1)).toThrow(ProductoInvalidoException);
+  });
+
   it('rechaza nombres vacíos', () => {
     expect(() =>
       Producto.crear({ nombre: '   ', categoria: 'VACUNO' }),

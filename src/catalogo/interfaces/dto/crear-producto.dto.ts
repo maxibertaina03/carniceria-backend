@@ -72,4 +72,14 @@ export class CrearProductoDto {
   @IsOptional()
   @IsBoolean({ message: 'El campo "se vende" debe ser verdadero o falso' })
   seVende?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'Cuánto hay hoy de este producto (stock inicial). Por defecto 0.',
+    example: 15,
+  })
+  @IsOptional()
+  @IsNumber({}, { message: 'El stock inicial debe ser un número' })
+  @Min(0, { message: 'El stock inicial no puede ser negativo' })
+  stockInicial?: number;
 }

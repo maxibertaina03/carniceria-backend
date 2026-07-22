@@ -78,6 +78,14 @@ export class ServicioProductos {
     return producto;
   }
 
+  // Corrige el stock dejándolo en la cantidad real contada.
+  async ajustarStock(id: string, cantidad: number): Promise<Producto> {
+    const producto = await this.obtener(id);
+    producto.ajustarStock(cantidad);
+    await this.repositorio.guardar(producto);
+    return producto;
+  }
+
   async desactivar(id: string): Promise<void> {
     const producto = await this.obtener(id);
     producto.desactivar();

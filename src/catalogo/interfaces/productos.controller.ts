@@ -12,6 +12,7 @@ import {
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ServicioProductos } from '../aplicacion/servicio-productos';
 import { ActualizarProductoDto } from './dto/actualizar-producto.dto';
+import { AjustarStockDto } from './dto/ajustar-stock.dto';
 import { CrearProductoDto } from './dto/crear-producto.dto';
 import { aProductoRespuesta } from './dto/producto-respuesta';
 
@@ -48,6 +49,15 @@ export class ProductosController {
   @ApiOperation({ summary: 'Editar un producto (datos, precios, activo)' })
   async actualizar(@Param('id') id: string, @Body() dto: ActualizarProductoDto) {
     return aProductoRespuesta(await this.servicio.actualizar(id, dto));
+  }
+
+  @Post(':id/ajustar-stock')
+  @ApiOperation({
+    summary:
+      'Ajustar el stock de un producto a la cantidad real (corrección de inventario)',
+  })
+  async ajustarStock(@Param('id') id: string, @Body() dto: AjustarStockDto) {
+    return aProductoRespuesta(await this.servicio.ajustarStock(id, dto.cantidad));
   }
 
   @Delete(':id')
