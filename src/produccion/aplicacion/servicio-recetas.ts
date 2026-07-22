@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { LectorProductosCatalogo } from '../../catalogo/aplicacion/puertos/lector-productos-catalogo';
+import { sonCompatibles } from '../../comun/dominio/conversion-unidades';
+import { UnidadMedida } from '../../comun/dominio/unidad-medida';
 import { RecetaInvalidaException } from '../dominio/excepciones';
-import { Receta } from '../dominio/receta';
+import { DatosIngrediente, Receta } from '../dominio/receta';
 import { RepositorioReceta } from '../dominio/repositorios';
 import {
   ConsultasProduccion,
@@ -12,7 +14,12 @@ import { RecalculadorCostos } from './puertos/recalculador-costos';
 export interface DatosReceta {
   productoTerminadoId: string;
   rindeCantidad: number;
-  ingredientes: { productoId: string; cantidad: number }[];
+  // La unidad es opcional: si no viene, se usa la del propio producto.
+  ingredientes: {
+    productoId: string;
+    cantidad: number;
+    unidad?: UnidadMedida;
+  }[];
 }
 
 @Injectable()
@@ -34,7 +41,8 @@ export class ServicioRecetas {
 
   // Crea o reemplaza la fórmula de un producto (una receta por producto).
   async guardar(datos: DatosReceta): Promise<RecetaDetalle> {
-    await this.verificarProductosExisten(datos);
+    const ingredientes = await this.resolverIngredientes(datos);
+    const datosResueltos = { ...datos, ingredientes };
 
     const recetaExistente = await this.repositorio.obtenerPorProducto(
       datos.productoTerminadoId,
@@ -42,9 +50,9 @@ export class ServicioRecetas {
     const receta = recetaExistente
       ? recetaExistente.actualizar({
           rindeCantidad: datos.rindeCantidad,
-          ingredientes: datos.ingredientes,
+          ingredientes,
         })
-      : Receta.crear(datos);
+      : Receta.crear(datosResueltos);
 
     await this.repositorio.guardar(receta);
     // La receta define el costo del producto: recalcular al guardarla.
@@ -60,7 +68,12 @@ export class ServicioRecetas {
     await this.recalculador.recalcularTodos();
   }
 
-  private async verificarProductosExisten(datos: DatosReceta): Promise<void> {
+  // Verifica que los productos existan y deja cada ingrediente con una unidad
+  // válida: la que se pidió (si es compatible con la del producto) o, si no se
+  // indicó ninguna, la del propio producto.
+  private async resolverIngredientes(
+    datos: DatosReceta,
+  ): Promise<DatosIngrediente[]> {
     const terminado = await this.lectorProductos.obtenerProducto(
       datos.productoTerminadoId,
     );
@@ -69,6 +82,8 @@ export class ServicioRecetas {
         'El producto terminado de la receta no existe',
       );
     }
+
+    const resueltos: DatosIngrediente[] = [];
     for (const ingrediente of datos.ingredientes ?? []) {
       const producto = await this.lectorProductos.obtenerProducto(
         ingrediente.productoId,
@@ -78,6 +93,18 @@ export class ServicioRecetas {
           'Uno de los ingredientes de la receta no existe',
         );
       }
+      const unidad = ingrediente.unidad ?? producto.unidadMedida;
+      if (!sonCompatibles(unidad, producto.unidadMedida)) {
+        throw new RecetaInvalidaException(
+          `"${producto.nombre}" se mide en ${producto.unidadMedida}, no se puede cargar en ${unidad}`,
+        );
+      }
+      resueltos.push({
+        productoId: ingrediente.productoId,
+        cantidad: ingrediente.cantidad,
+        unidad,
+      });
     }
+    return resueltos;
   }
 }

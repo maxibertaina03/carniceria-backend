@@ -1,19 +1,23 @@
 import { randomUUID } from 'crypto';
 import { redondearCantidad } from '../../comun/dominio/redondeo';
+import { UnidadMedida } from '../../comun/dominio/unidad-medida';
 import { RecetaInvalidaException } from './excepciones';
 
-// Un ingrediente de la fórmula: qué producto (insumo o corte) y cuánto,
-// por el rinde base de la receta.
+// Un ingrediente de la fórmula: qué producto (insumo o corte), cuánto y en qué
+// unidad, por el rinde base de la receta. La unidad puede ser distinta a la del
+// producto (ej. 28 g de una sal que se compra por kg); se convierte al usarla.
 export class IngredienteReceta {
   constructor(
     readonly productoId: string,
     readonly cantidad: number,
+    readonly unidad: UnidadMedida,
   ) {}
 }
 
 export interface DatosIngrediente {
   productoId: string;
   cantidad: number;
+  unidad: UnidadMedida;
 }
 
 // Aggregate root: la fórmula para producir un embutido. Define cuánto rinde
@@ -48,7 +52,7 @@ export class Receta {
       props.rindeCantidad,
       props.activa,
       props.ingredientes.map(
-        (i) => new IngredienteReceta(i.productoId, i.cantidad),
+        (i) => new IngredienteReceta(i.productoId, i.cantidad, i.unidad),
       ),
     );
   }
@@ -102,7 +106,11 @@ export class Receta {
           'La cantidad de cada ingrediente debe ser mayor a cero',
         );
       }
-      return new IngredienteReceta(ingrediente.productoId, ingrediente.cantidad);
+      return new IngredienteReceta(
+        ingrediente.productoId,
+        ingrediente.cantidad,
+        ingrediente.unidad,
+      );
     });
 
     return new Receta(
@@ -116,9 +124,10 @@ export class Receta {
 
   // Escala los ingredientes para producir `cantidadProducida` del terminado.
   // Ej: receta rinde 10 kg, se quieren 30 kg → cada ingrediente ×3.
+  // La cantidad sigue expresada en la unidad del ingrediente (ej. gramos).
   escalarIngredientes(
     cantidadProducida: number,
-  ): { productoId: string; cantidad: number }[] {
+  ): { productoId: string; cantidad: number; unidad: UnidadMedida }[] {
     if (!(cantidadProducida > 0)) {
       throw new RecetaInvalidaException(
         'La cantidad a producir debe ser mayor a cero',
@@ -128,6 +137,7 @@ export class Receta {
     return this.ingredientes.map((ingrediente) => ({
       productoId: ingrediente.productoId,
       cantidad: redondearCantidad(ingrediente.cantidad * factor),
+      unidad: ingrediente.unidad,
     }));
   }
 }

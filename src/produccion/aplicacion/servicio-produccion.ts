@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AjustadorStockProducto } from '../../catalogo/aplicacion/puertos/ajustador-stock-producto';
 import { LectorProductosCatalogo } from '../../catalogo/aplicacion/puertos/lector-productos-catalogo';
 import { UnidadDeTrabajo } from '../../comun/aplicacion/unidad-de-trabajo';
+import { convertirCantidad } from '../../comun/dominio/conversion-unidades';
 import { ActualizadorStockProducto } from '../../compras/aplicacion/puertos/actualizador-stock-producto';
 import { DescontadorStockProducto } from '../../ventas/aplicacion/puertos/descontador-stock-producto';
 import {
@@ -70,16 +71,23 @@ export class ServicioProduccion {
             'Un ingrediente de la receta ya no existe',
           );
         }
-        // Descontar del stock (bloquea si no alcanza) y tomar el costo actual.
+        // La receta puede pedir el ingrediente en otra unidad que la del
+        // producto (ej. 28 g de una sal que se stockea por kg): se convierte
+        // para descontar stock y costear con el precio por unidad del producto.
+        const cantidadEnUnidadDelProducto = convertirCantidad(
+          ingrediente.cantidad,
+          ingrediente.unidad,
+          producto.unidadMedida,
+        );
         await this.descontadorStock.descontar(
           ingrediente.productoId,
-          ingrediente.cantidad,
+          cantidadEnUnidadDelProducto,
           ctx,
         );
         items.push(
           ItemProduccion.crear(
             ingrediente.productoId,
-            ingrediente.cantidad,
+            cantidadEnUnidadDelProducto,
             producto.costoUnitarioReferencia,
           ),
         );

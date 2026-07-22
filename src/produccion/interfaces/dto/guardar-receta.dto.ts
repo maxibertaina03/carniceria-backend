@@ -1,14 +1,20 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   IsArray,
+  IsIn,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsPositive,
   IsString,
   ValidateNested,
 } from 'class-validator';
+import {
+  UNIDADES_MEDIDA,
+  UnidadMedida,
+} from '../../../comun/dominio/unidad-medida';
 
 export class IngredienteRecetaDto {
   @ApiProperty({ description: 'Id del producto ingrediente (insumo o corte)' })
@@ -18,12 +24,24 @@ export class IngredienteRecetaDto {
 
   @ApiProperty({
     description:
-      'Cantidad del ingrediente (en su unidad) por el rinde base de la receta',
-    example: 100,
+      'Cantidad del ingrediente por el rinde base de la receta, en la unidad de abajo',
+    example: 28,
   })
   @IsNumber({}, { message: 'La cantidad debe ser un número' })
   @IsPositive({ message: 'La cantidad debe ser mayor a cero' })
   cantidad: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Unidad de la cantidad. Puede ser distinta a la del producto si es compatible (ej. GRAMO para una sal que se compra por KG). Si no se envía, se usa la del producto.',
+    enum: UNIDADES_MEDIDA,
+    example: 'GRAMO',
+  })
+  @IsOptional()
+  @IsIn(UNIDADES_MEDIDA, {
+    message: `La unidad debe ser una de: ${UNIDADES_MEDIDA.join(', ')}`,
+  })
+  unidad?: UnidadMedida;
 }
 
 export class GuardarRecetaDto {

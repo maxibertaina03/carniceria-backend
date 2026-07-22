@@ -85,7 +85,8 @@ export class ConsultasProduccionPrisma extends ConsultasProduccion {
       ingredientes: fila.ingredientes.map((ingrediente) => ({
         productoId: ingrediente.productoId,
         productoNombre: ingrediente.producto.nombre,
-        unidadMedida: ingrediente.producto.unidadMedida,
+        unidad: ingrediente.unidad,
+        unidadProducto: ingrediente.producto.unidadMedida,
         cantidad: Number(ingrediente.cantidad),
       })),
     };

@@ -214,8 +214,12 @@ model IngredienteReceta {
   id         String  @id @default(uuid())
   recetaId   String  @map("receta_id")
   productoId String  @map("producto_id")
-  // Cantidad del ingrediente, en su propia unidad, por el rinde base de la receta.
+  // Cantidad del ingrediente por el rinde base de la receta, expresada en la
+  // unidad de abajo (ej. 28 GRAMO de una sal que se compra y stockea por KG).
   cantidad   Decimal @db.Decimal(12, 3)
+  // Unidad en la que se carga la cantidad; se convierte a la del producto
+  // para descontar stock y calcular el costo.
+  unidad     UnidadMedida @default(KG)
 
   receta   Receta   @relation(fields: [recetaId], references: [id], onDelete: Cascade)
   producto Producto @relation(fields: [productoId], references: [id])

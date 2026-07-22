@@ -3,7 +3,11 @@
 export interface IngredienteRecetaDetalle {
   productoId: string;
   productoNombre: string;
-  unidadMedida: string;
+  // Unidad en la que está cargada la cantidad de la receta (ej. GRAMO).
+  unidad: string;
+  // Unidad en la que se compra y stockea el producto (ej. KG); es la unidad
+  // en la que está expresado su costo.
+  unidadProducto: string;
   cantidad: number;
 }
 

@@ -6,6 +6,7 @@ import {
 import { ContextoTransaccion } from '../../comun/dominio/contexto-transaccion';
 import { clienteDeContexto } from '../../comun/infraestructura/cliente-de-contexto';
 import { PrismaService } from '../../comun/infraestructura/prisma.service';
+import { UnidadMedida } from '../../comun/dominio/unidad-medida';
 import { Receta } from '../dominio/receta';
 import { RepositorioReceta } from '../dominio/repositorios';
 
@@ -43,6 +44,7 @@ export class RepositorioRecetaPrisma extends RepositorioReceta {
       create: receta.ingredientes.map((ingrediente) => ({
         productoId: ingrediente.productoId,
         cantidad: ingrediente.cantidad,
+        unidad: ingrediente.unidad,
       })),
     };
     await cliente.receta.upsert({
@@ -78,6 +80,7 @@ export class RepositorioRecetaPrisma extends RepositorioReceta {
       ingredientes: fila.ingredientes.map((ingrediente) => ({
         productoId: ingrediente.productoId,
         cantidad: Number(ingrediente.cantidad),
+        unidad: ingrediente.unidad as UnidadMedida,
       })),
     });
   }

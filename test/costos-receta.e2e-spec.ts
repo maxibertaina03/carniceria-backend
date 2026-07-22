@@ -46,10 +46,12 @@ describe('Costo de producción según receta (e2e)', () => {
       categoria: 'INSUMOS',
       seVende: false,
     });
+    // La sal se compra y se stockea por KILO (así la carga el usuario),
+    // pero en las recetas se usa en gramos.
     salId = await crearProducto({
       nombre: 'Sal fina',
       categoria: 'INSUMOS',
-      unidadMedida: 'GRAMO',
+      unidadMedida: 'KG',
       seVende: false,
     });
     salameId = await crearProducto({ nombre: 'Salame propio', categoria: 'CHACINADOS' });
@@ -69,37 +71,57 @@ describe('Costo de producción según receta (e2e)', () => {
       .post('/compras')
       .send({
         items: [
+          // Ambos se compran por KILO, con precio por kilo.
           { productoId: carneId, cantidad: 100, costoUnitario: 9000 },
-          { productoId: salId, cantidad: 2000, costoUnitario: 5 },
+          { productoId: salId, cantidad: 5, costoUnitario: 1500 },
         ],
       })
       .expect(201);
 
-    // Receta: 10 kg de salame = 10 kg carne + 200 g sal.
+    // Receta: 10 kg de salame = 10 kg carne + 200 GRAMOS de sal
+    // (la sal se compra por kilo pero en la receta se usa en gramos).
     await http()
       .put('/recetas')
       .send({
         productoTerminadoId: salameId,
         rindeCantidad: 10,
         ingredientes: [
-          { productoId: carneId, cantidad: 10 },
-          { productoId: salId, cantidad: 200 },
+          { productoId: carneId, cantidad: 10, unidad: 'KG' },
+          { productoId: salId, cantidad: 200, unidad: 'GRAMO' },
         ],
       })
       .expect(200);
 
-    // (10×9000 + 200×5) / 10 = (90.000 + 1.000) / 10 = 9.100
-    expect(await costoDe(salameId)).toBe(9100);
+    // (10×9000 + 0,2 kg×1500) / 10 = (90.000 + 300) / 10 = 9.030
+    expect(await costoDe(salameId)).toBe(9030);
+  });
+
+  it('los gramos de la receta no se cuentan como kilos', async () => {
+    // El bug original: 28 g de una sal de $1.500 el kilo daban $42.000.
+    const soloSal = await crearProducto({
+      nombre: 'Chorizo de prueba',
+      categoria: 'CHACINADOS',
+    });
+    await http()
+      .put('/recetas')
+      .send({
+        productoTerminadoId: soloSal,
+        rindeCantidad: 1,
+        ingredientes: [{ productoId: salId, cantidad: 28, unidad: 'GRAMO' }],
+      })
+      .expect(200);
+    // 28 g = 0,028 kg × $1.500 = $42 (no $42.000)
+    expect(await costoDe(soloSal)).toBe(42);
   });
 
   it('comprar un insumo más caro sube el costo del producto solo', async () => {
-    // Sal ahora a $15/g.
+    // La sal pasa a $3.000 el kilo.
     await http()
       .post('/compras')
-      .send({ items: [{ productoId: salId, cantidad: 500, costoUnitario: 15 }] })
+      .send({ items: [{ productoId: salId, cantidad: 2, costoUnitario: 3000 }] })
       .expect(201);
-    // (10×9000 + 200×15) / 10 = (90.000 + 3.000) / 10 = 9.300
-    expect(await costoDe(salameId)).toBe(9300);
+    // (10×9000 + 0,2×3000) / 10 = (90.000 + 600) / 10 = 9.060
+    expect(await costoDe(salameId)).toBe(9060);
   });
 
   it('editar el precio de un insumo y recalcular actualiza el costo', async () => {
@@ -108,25 +130,25 @@ describe('Costo de producción según receta (e2e)', () => {
       .send({ costoUnitarioReferencia: 10000 })
       .expect(200);
     await http().post('/produccion/recalcular-costos').expect(200);
-    // (10×10000 + 200×15) / 10 = (100.000 + 3.000) / 10 = 10.300
-    expect(await costoDe(salameId)).toBe(10300);
+    // (10×10000 + 0,2×3000) / 10 = (100.000 + 600) / 10 = 10.060
+    expect(await costoDe(salameId)).toBe(10060);
   });
 
   it('resuelve una cadena: un producido usado como ingrediente de otro', async () => {
-    // El salame premium lleva 1 kg del salame propio (10.300/kg) + 100 g sal.
+    // El salame premium lleva 1 kg del salame propio (10.060/kg) + 100 g sal.
     await http()
       .put('/recetas')
       .send({
         productoTerminadoId: embutidoPremiumId,
         rindeCantidad: 1,
         ingredientes: [
-          { productoId: salameId, cantidad: 1 },
-          { productoId: salId, cantidad: 100 },
+          { productoId: salameId, cantidad: 1, unidad: 'KG' },
+          { productoId: salId, cantidad: 100, unidad: 'GRAMO' },
         ],
       })
       .expect(200);
-    // (1×10300 + 100×15) / 1 = 10.300 + 1.500 = 11.800
-    expect(await costoDe(embutidoPremiumId)).toBe(11800);
+    // (1×10060 + 0,1 kg×3000) / 1 = 10.060 + 300 = 10.360
+    expect(await costoDe(embutidoPremiumId)).toBe(10360);
 
     // Si sube la carne base, la cadena entera se actualiza.
     await http()
@@ -134,8 +156,8 @@ describe('Costo de producción según receta (e2e)', () => {
       .send({ costoUnitarioReferencia: 11000 })
       .expect(200);
     await http().post('/produccion/recalcular-costos').expect(200);
-    // salame propio: (10×11000 + 200×15)/10 = 11.300 ; premium: 11.300 + 1.500 = 12.800
-    expect(await costoDe(salameId)).toBe(11300);
-    expect(await costoDe(embutidoPremiumId)).toBe(12800);
+    // salame propio: (10×11000 + 0,2×3000)/10 = 11.060 ; premium: 11.060 + 300 = 11.360
+    expect(await costoDe(salameId)).toBe(11060);
+    expect(await costoDe(embutidoPremiumId)).toBe(11360);
   });
 });

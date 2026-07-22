@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { AjustadorStockProducto } from '../../catalogo/aplicacion/puertos/ajustador-stock-producto';
 import { LectorProductosCatalogo } from '../../catalogo/aplicacion/puertos/lector-productos-catalogo';
 import { UnidadDeTrabajo } from '../../comun/aplicacion/unidad-de-trabajo';
+import { convertirCantidad } from '../../comun/dominio/conversion-unidades';
 import { redondearMoneda } from '../../comun/dominio/redondeo';
+import { UnidadMedida } from '../../comun/dominio/unidad-medida';
 import { RepositorioReceta } from '../dominio/repositorios';
 import { RecalculadorCostos } from './puertos/recalculador-costos';
 
@@ -27,8 +29,9 @@ export class ServicioCostosProducidos extends RecalculadorCostos {
       return;
     }
 
-    // Costo actual conocido de cada producto que aparece (terminados + insumos).
+    // Costo actual y unidad de cada producto que aparece (terminados + insumos).
     const costos = new Map<string, number>();
+    const unidades = new Map<string, UnidadMedida>();
     const idsReferenciados = new Set<string>();
     for (const receta of recetas) {
       idsReferenciados.add(receta.productoTerminadoId);
@@ -39,6 +42,7 @@ export class ServicioCostosProducidos extends RecalculadorCostos {
     for (const productoId of idsReferenciados) {
       const producto = await this.lectorProductos.obtenerProducto(productoId);
       costos.set(productoId, producto?.costoUnitarioReferencia ?? 0);
+      unidades.set(productoId, producto?.unidadMedida ?? 'KG');
     }
 
     // Iteración a punto fijo: recalcular el costo de cada terminado hasta que
@@ -48,7 +52,15 @@ export class ServicioCostosProducidos extends RecalculadorCostos {
       for (const receta of recetas) {
         let total = 0;
         for (const ingrediente of receta.ingredientes) {
-          total += (costos.get(ingrediente.productoId) ?? 0) * ingrediente.cantidad;
+          // La cantidad de la receta puede estar en otra unidad que el producto
+          // (ej. gramos de una sal que se compra por kilo): se convierte a la
+          // unidad del producto, que es en la que está expresado su costo.
+          const cantidad = convertirCantidad(
+            ingrediente.cantidad,
+            ingrediente.unidad,
+            unidades.get(ingrediente.productoId) ?? ingrediente.unidad,
+          );
+          total += (costos.get(ingrediente.productoId) ?? 0) * cantidad;
         }
         const nuevoCosto = redondearMoneda(total / receta.rindeCantidad);
         if (nuevoCosto !== costos.get(receta.productoTerminadoId)) {
