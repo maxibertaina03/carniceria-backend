@@ -8,9 +8,14 @@ export interface RangoFechas {
 export interface ReporteGanancias {
   cantidadVentas: number;
   totalVendido: number;
+  // Ganancia bruta de las ventas (precio − costo de la mercadería).
   gananciaTotal: number;
   totalContado: number;
   totalFiado: number;
+  // Gastos del negocio en el período (alquiler, luz, etc.).
+  totalGastos: number;
+  // Resultado real = ganancia de ventas − gastos.
+  resultado: number;
 }
 
 export interface ProductoMasVendido {

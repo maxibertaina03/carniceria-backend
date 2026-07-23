@@ -24,6 +24,8 @@ export class ComprasController {
   registrar(@Body() dto: RegistrarCompraDto) {
     return this.servicio.registrar({
       proveedor: dto.proveedor,
+      proveedorId: dto.proveedorId,
+      montoAdeudado: dto.montoAdeudado,
       observaciones: dto.observaciones,
       fecha: dto.fecha ? new Date(dto.fecha) : undefined,
       items: dto.items,

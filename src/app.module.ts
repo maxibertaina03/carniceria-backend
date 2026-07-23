@@ -4,8 +4,10 @@ import { ComprasModule } from './compras/compras.module';
 import { ComunModule } from './comun/comun.module';
 import { CuentasCorrientesModule } from './cuentas-corrientes/cuentas-corrientes.module';
 import { DesposteModule } from './desposte/desposte.module';
+import { GastosModule } from './gastos/gastos.module';
 import { PedidosModule } from './pedidos/pedidos.module';
 import { ProduccionModule } from './produccion/produccion.module';
+import { ProveedoresModule } from './proveedores/proveedores.module';
 import { ReportesModule } from './reportes/reportes.module';
 import { VentasModule } from './ventas/ventas.module';
 
@@ -16,6 +18,8 @@ import { VentasModule } from './ventas/ventas.module';
     ComprasModule,
     VentasModule,
     CuentasCorrientesModule,
+    ProveedoresModule,
+    GastosModule,
     DesposteModule,
     ProduccionModule,
     PedidosModule,

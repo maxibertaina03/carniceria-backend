@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UnidadDeTrabajo } from '../../comun/aplicacion/unidad-de-trabajo';
 import { LectorProductosCatalogo } from '../../catalogo/aplicacion/puertos/lector-productos-catalogo';
 import { RecalculadorCostos } from '../../produccion/aplicacion/puertos/recalculador-costos';
+import { RegistradorDeudaProveedor } from '../../proveedores/aplicacion/puertos/registrador-deuda-proveedor';
 import { DescontadorStockProducto } from '../../ventas/aplicacion/puertos/descontador-stock-producto';
 import { Compra, ItemCompra } from '../dominio/compra';
 import {
@@ -14,6 +15,9 @@ import { CompraDetalle, ConsultaCompras } from './puertos/consulta-compras';
 
 export interface DatosRegistrarCompra {
   proveedor?: string;
+  proveedorId?: string;
+  // Cuánto queda a deber (0 = paga todo al contado; igual al total = todo a deber).
+  montoAdeudado?: number;
   observaciones?: string;
   fecha?: Date;
   items: { productoId: string; cantidad: number; costoUnitario: number }[];
@@ -29,12 +33,20 @@ export class ServicioCompras {
     private readonly actualizadorStock: ActualizadorStockProducto,
     private readonly descontadorStock: DescontadorStockProducto,
     private readonly recalculador: RecalculadorCostos,
+    private readonly registradorDeuda: RegistradorDeudaProveedor,
   ) {}
 
   // Registra la compra y, en la misma transacción, suma stock y actualiza
   // el costo de referencia de cada producto comprado.
   async registrar(datos: DatosRegistrarCompra): Promise<CompraDetalle> {
     const compraId = await this.unidadDeTrabajo.ejecutar(async (ctx) => {
+      if ((datos.montoAdeudado ?? 0) > 0 && datos.proveedorId) {
+        await this.registradorDeuda.verificarProveedorActivo(
+          datos.proveedorId,
+          ctx,
+        );
+      }
+
       const itemsDominio: ItemCompra[] = [];
       for (const item of datos.items ?? []) {
         const producto = await this.lectorProductos.obtenerProducto(
@@ -63,6 +75,8 @@ export class ServicioCompras {
 
       const compra = Compra.registrar({
         proveedor: datos.proveedor,
+        proveedorId: datos.proveedorId,
+        montoAdeudado: datos.montoAdeudado,
         observaciones: datos.observaciones,
         fecha: datos.fecha,
         items: itemsDominio,
@@ -74,6 +88,17 @@ export class ServicioCompras {
           item.productoId,
           item.cantidad,
           item.costoUnitario,
+          ctx,
+        );
+      }
+
+      // Si quedó algo a deber, se registra en la cuenta del proveedor.
+      if (compra.montoAdeudado > 0 && compra.proveedorId) {
+        await this.registradorDeuda.registrarCargoPorCompra(
+          compra.proveedorId,
+          compra.id,
+          compra.montoAdeudado,
+          compra.fecha,
           ctx,
         );
       }
@@ -103,6 +128,15 @@ export class ServicioCompras {
   async eliminar(id: string): Promise<void> {
     const compra = await this.obtener(id);
     await this.unidadDeTrabajo.ejecutar(async (ctx) => {
+      // Si la compra tenía deuda, se revierte primero (bloquea si ya se pagó parte).
+      if (compra.montoAdeudado > 0 && compra.proveedorId) {
+        await this.registradorDeuda.revertirCargoPorCompra(
+          compra.proveedorId,
+          compra.id,
+          compra.montoAdeudado,
+          ctx,
+        );
+      }
       for (const item of compra.items) {
         await this.descontadorStock.descontar(item.productoId, item.cantidad, ctx);
       }

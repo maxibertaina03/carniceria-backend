@@ -17,7 +17,9 @@ export class RepositorioCompraPrisma extends RepositorioCompra {
         id: compra.id,
         fecha: compra.fecha,
         proveedor: compra.proveedor,
+        proveedorId: compra.proveedorId,
         total: compra.total,
+        montoAdeudado: compra.montoAdeudado,
         observaciones: compra.observaciones,
         items: {
           create: compra.items.map((item) => ({

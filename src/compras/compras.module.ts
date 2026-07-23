@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CatalogoModule } from '../catalogo/catalogo.module';
 import { ProduccionModule } from '../produccion/produccion.module';
+import { ProveedoresModule } from '../proveedores/proveedores.module';
 import { ConsultaCompras } from './aplicacion/puertos/consulta-compras';
 import { ServicioCompras } from './aplicacion/servicio-compras';
 import { RepositorioCompra } from './dominio/repositorio-compra';
@@ -9,7 +10,7 @@ import { RepositorioCompraPrisma } from './infraestructura/repositorio-compra-pr
 import { ComprasController } from './interfaces/compras.controller';
 
 @Module({
-  imports: [CatalogoModule, ProduccionModule],
+  imports: [CatalogoModule, ProduccionModule, ProveedoresModule],
   controllers: [ComprasController],
   providers: [
     ServicioCompras,

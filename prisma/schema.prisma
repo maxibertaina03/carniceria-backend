@@ -85,11 +85,19 @@ model Producto {
 model Compra {
   id            String   @id @default(uuid())
   fecha         DateTime @default(now())
+  // Nombre suelto del proveedor (compra rápida sin cuenta).
   proveedor     String?
+  // Proveedor con cuenta corriente (opcional). Si queda algo adeudado, se
+  // registra en su cuenta.
+  proveedorId   String?  @map("proveedor_id")
   total         Decimal  @db.Decimal(12, 2)
+  // Cuánto de esta compra quedó a deber (0 = se pagó todo al contado).
+  montoAdeudado Decimal  @default(0) @map("monto_adeudado") @db.Decimal(12, 2)
   observaciones String?
 
-  items ItemCompra[]
+  items          ItemCompra[]
+  proveedorCta   Proveedor?         @relation(fields: [proveedorId], references: [id])
+  movimientos    MovimientoProveedor[]
 
   @@map("compras")
 }
@@ -303,4 +311,58 @@ model ItemPedido {
   producto Producto @relation(fields: [productoId], references: [id])
 
   @@map("items_pedido")
+}
+
+// --- Proveedores (cuentas por pagar): lo que YO debo ---
+// Espejo de Cliente/MovimientoCuenta pero al revés: el saldo es lo que le debo.
+
+model Proveedor {
+  id            String   @id @default(uuid())
+  nombre        String
+  telefono      String?
+  saldoAdeudado Decimal  @default(0) @map("saldo_adeudado") @db.Decimal(12, 2)
+  activo        Boolean  @default(true)
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+
+  compras     Compra[]
+  gastos      Gasto[]
+  movimientos MovimientoProveedor[]
+
+  @@map("proveedores")
+}
+
+model MovimientoProveedor {
+  id            String         @id @default(uuid())
+  proveedorId   String         @map("proveedor_id")
+  tipo          TipoMovimiento // CARGO = deuda que genero ; PAGO = lo que le pago
+  monto         Decimal        @db.Decimal(12, 2)
+  fecha         DateTime       @default(now())
+  compraId      String?        @map("compra_id")
+  gastoId       String?        @map("gasto_id")
+  observaciones String?
+
+  proveedor Proveedor @relation(fields: [proveedorId], references: [id])
+  compra    Compra?   @relation(fields: [compraId], references: [id])
+  gasto     Gasto?    @relation(fields: [gastoId], references: [id])
+
+  @@map("movimientos_proveedor")
+}
+
+// --- Gastos del negocio (no mercadería): alquiler, luz, sueldos, etc. ---
+
+model Gasto {
+  id            String   @id @default(uuid())
+  fecha         DateTime @default(now())
+  concepto      String
+  categoria     String?
+  monto         Decimal  @db.Decimal(12, 2)
+  // Si es adeudado, se registra en la cuenta del proveedor de abajo.
+  adeudado      Boolean  @default(false)
+  proveedorId   String?  @map("proveedor_id")
+  observaciones String?
+
+  proveedor   Proveedor?            @relation(fields: [proveedorId], references: [id])
+  movimientos MovimientoProveedor[]
+
+  @@map("gastos")
 }

@@ -36,13 +36,24 @@ export class ConsultasReportesPrisma extends ConsultasReportes {
       where: { venta: filtro },
       _sum: { gananciaLinea: true },
     });
+    const gastos = await this.prisma.gasto.aggregate({
+      where: filtro,
+      _sum: { monto: true },
+    });
+
+    const gananciaTotal = redondearMoneda(
+      Number(ganancia._sum.gananciaLinea ?? 0),
+    );
+    const totalGastos = redondearMoneda(Number(gastos._sum.monto ?? 0));
 
     return {
       cantidadVentas: ventas._count.id,
       totalVendido: Number(ventas._sum.total ?? 0),
-      gananciaTotal: Number(ganancia._sum.gananciaLinea ?? 0),
+      gananciaTotal,
       totalContado: Number(ventas._sum.montoContado ?? 0),
       totalFiado: Number(ventas._sum.montoFiado ?? 0),
+      totalGastos,
+      resultado: redondearMoneda(gananciaTotal - totalGastos),
     };
   }
 

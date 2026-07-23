@@ -36,6 +36,22 @@ export class RegistrarCompraDto {
   @IsString({ message: 'El proveedor debe ser un texto' })
   proveedor?: string;
 
+  @ApiPropertyOptional({
+    description: 'Id del proveedor con cuenta (obligatorio si algo queda a deber)',
+  })
+  @IsOptional()
+  @IsString({ message: 'El id del proveedor debe ser un texto' })
+  proveedorId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Cuánto queda a deber (0 = paga todo; igual al total = todo a deber)',
+    example: 0,
+  })
+  @IsOptional()
+  @IsNumber({}, { message: 'El monto adeudado debe ser un número' })
+  @Min(0, { message: 'El monto adeudado no puede ser negativo' })
+  montoAdeudado?: number;
+
   @ApiPropertyOptional({ description: 'Observaciones de la compra' })
   @IsOptional()
   @IsString({ message: 'Las observaciones deben ser un texto' })

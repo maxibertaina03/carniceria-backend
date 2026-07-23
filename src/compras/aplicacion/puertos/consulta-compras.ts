@@ -14,7 +14,13 @@ export interface CompraDetalle {
   id: string;
   fecha: Date;
   proveedor: string | null;
+  proveedorId: string | null;
+  proveedorNombre: string | null;
   total: number;
+  montoAdeudado: number;
+  montoPagado: number;
+  // Derivada: CONTADO (0 adeudado), ADEUDADO (todo) o MIXTO.
+  formaPago: string;
   observaciones: string | null;
   items: ItemCompraDetalle[];
 }
