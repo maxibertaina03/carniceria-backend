@@ -22,8 +22,25 @@ export class ServicioProveedores {
     private readonly repositorio: RepositorioProveedor,
   ) {}
 
-  async crear(datos: { nombre: string; telefono?: string }): Promise<Proveedor> {
+  async crear(datos: {
+    nombre: string;
+    telefono?: string;
+    deudaInicial?: number;
+  }): Promise<Proveedor> {
     const proveedor = Proveedor.crear(datos);
+    const deudaInicial = datos.deudaInicial ?? 0;
+    // Si arranca con una deuda ya existente, la registramos como un cargo
+    // inicial para que quede en el historial y el saldo sea coherente.
+    if (deudaInicial > 0) {
+      return this.unidadDeTrabajo.ejecutar(async (ctx) => {
+        const movimiento = proveedor.registrarCargo(Dinero.desde(deudaInicial), {
+          observaciones: 'Saldo inicial',
+        });
+        await this.repositorio.guardar(proveedor, ctx);
+        await this.repositorio.agregarMovimiento(movimiento, ctx);
+        return proveedor;
+      });
+    }
     await this.repositorio.guardar(proveedor);
     return proveedor;
   }
@@ -89,10 +106,9 @@ export class ServicioProveedores {
       if (!proveedor) {
         throw new ProveedorNoEncontradoException(id);
       }
-      const movimiento = proveedor.registrarPago(
-        Dinero.desde(datos.monto),
-        datos.observaciones,
-      );
+      const movimiento = proveedor.registrarPago(Dinero.desde(datos.monto), {
+        observaciones: datos.observaciones,
+      });
       await this.repositorio.guardar(proveedor, ctx);
       await this.repositorio.agregarMovimiento(movimiento, ctx);
       return { proveedor, movimiento };

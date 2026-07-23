@@ -43,7 +43,7 @@ export class MovimientoProveedor {
   static pago(
     proveedorId: string,
     monto: Dinero,
-    datos: { observaciones?: string; fecha?: Date } = {},
+    datos: { observaciones?: string; fecha?: Date; gastoId?: string } = {},
   ): MovimientoProveedor {
     return new MovimientoProveedor({
       id: randomUUID(),
@@ -52,7 +52,7 @@ export class MovimientoProveedor {
       monto: monto.monto,
       fecha: datos.fecha ?? new Date(),
       compraId: null,
-      gastoId: null,
+      gastoId: datos.gastoId ?? null,
       observaciones: datos.observaciones?.trim() || null,
     });
   }

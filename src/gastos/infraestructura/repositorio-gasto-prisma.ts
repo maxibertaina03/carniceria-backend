@@ -23,9 +23,18 @@ export class RepositorioGastoPrisma extends RepositorioGasto {
         categoria: gasto.categoria,
         monto: gasto.monto,
         adeudado: gasto.adeudado,
+        fechaVencimiento: gasto.fechaVencimiento,
+        pagado: gasto.pagado,
         proveedorId: gasto.proveedorId,
         observaciones: gasto.observaciones,
       },
+    });
+  }
+
+  async marcarPagado(id: string, ctx?: ContextoTransaccion): Promise<void> {
+    await clienteDeContexto(this.prisma, ctx).gasto.update({
+      where: { id },
+      data: { pagado: true },
     });
   }
 
@@ -57,6 +66,8 @@ export class RepositorioGastoPrisma extends RepositorioGasto {
       categoria: fila.categoria,
       monto: Number(fila.monto),
       adeudado: fila.adeudado,
+      fechaVencimiento: fila.fechaVencimiento,
+      pagado: fila.pagado,
       proveedorId: fila.proveedorId,
       proveedorNombre: fila.proveedor?.nombre ?? null,
       observaciones: fila.observaciones,

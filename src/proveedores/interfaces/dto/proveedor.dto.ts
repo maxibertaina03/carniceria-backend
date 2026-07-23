@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  Min,
 } from 'class-validator';
 
 export class CrearProveedorDto {
@@ -18,6 +19,15 @@ export class CrearProveedorDto {
   @IsOptional()
   @IsString({ message: 'El teléfono debe ser un texto' })
   telefono?: string;
+
+  @ApiPropertyOptional({
+    description: 'Deuda que ya se le tenía al proveedor al empezar (opcional)',
+    example: 50000,
+  })
+  @IsOptional()
+  @IsNumber({}, { message: 'La deuda inicial debe ser un número' })
+  @Min(0, { message: 'La deuda inicial no puede ser negativa' })
+  deudaInicial?: number;
 }
 
 export class ActualizarProveedorDto {

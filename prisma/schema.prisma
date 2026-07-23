@@ -351,14 +351,18 @@ model MovimientoProveedor {
 // --- Gastos del negocio (no mercadería): alquiler, luz, sueldos, etc. ---
 
 model Gasto {
-  id            String   @id @default(uuid())
-  fecha         DateTime @default(now())
+  id            String    @id @default(uuid())
+  fecha         DateTime  @default(now())
   concepto      String
   categoria     String?
-  monto         Decimal  @db.Decimal(12, 2)
+  monto         Decimal   @db.Decimal(12, 2)
   // Si es adeudado, se registra en la cuenta del proveedor de abajo.
-  adeudado      Boolean  @default(false)
-  proveedorId   String?  @map("proveedor_id")
+  adeudado      Boolean   @default(false)
+  // Fecha en que vence la boleta (solo tiene sentido si está adeudada).
+  fechaVencimiento DateTime? @map("fecha_vencimiento")
+  // Si la boleta ya se pagó. Los gastos al contado nacen pagados.
+  pagado        Boolean   @default(true)
+  proveedorId   String?   @map("proveedor_id")
   observaciones String?
 
   proveedor   Proveedor?            @relation(fields: [proveedorId], references: [id])

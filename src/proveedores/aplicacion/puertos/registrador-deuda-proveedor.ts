@@ -24,6 +24,15 @@ export abstract class RegistradorDeudaProveedor {
     ctx?: ContextoTransaccion,
   ): Promise<void>;
 
+  // Al pagar una boleta (gasto adeudado): registra el pago y baja el saldo.
+  abstract registrarPagoPorGasto(
+    proveedorId: string,
+    gastoId: string,
+    monto: number,
+    fecha: Date,
+    ctx?: ContextoTransaccion,
+  ): Promise<void>;
+
   // Al borrar una compra/gasto adeudado: baja el saldo y borra sus movimientos.
   // Bloquea si ya se pagó parte de esa deuda.
   abstract revertirCargoPorCompra(
@@ -37,6 +46,13 @@ export abstract class RegistradorDeudaProveedor {
     proveedorId: string,
     gastoId: string,
     monto: number,
+    ctx?: ContextoTransaccion,
+  ): Promise<void>;
+
+  // Al borrar una boleta que ya se había pagado: el cargo y el pago se anulan,
+  // así que solo se limpian sus movimientos (el saldo no cambia).
+  abstract limpiarMovimientosDeGasto(
+    gastoId: string,
     ctx?: ContextoTransaccion,
   ): Promise<void>;
 }

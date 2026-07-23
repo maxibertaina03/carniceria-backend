@@ -32,10 +32,19 @@ export class GastosController {
       categoria: dto.categoria,
       monto: dto.monto,
       adeudado: dto.adeudado,
+      fechaVencimiento: dto.fechaVencimiento
+        ? new Date(dto.fechaVencimiento)
+        : undefined,
       proveedorId: dto.proveedorId,
       observaciones: dto.observaciones,
       fecha: dto.fecha ? new Date(dto.fecha) : undefined,
     });
+  }
+
+  @Post(':id/pagar')
+  @ApiOperation({ summary: 'Marcar una boleta adeudada como pagada' })
+  pagar(@Param('id') id: string) {
+    return this.servicio.pagar(id);
   }
 
   @Delete(':id')

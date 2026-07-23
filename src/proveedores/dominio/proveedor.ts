@@ -98,8 +98,11 @@ export class Proveedor {
     return MovimientoProveedor.cargo(this.props.id, monto, datos);
   }
 
-  // Le pago (total o parcial).
-  registrarPago(monto: Dinero, observaciones?: string): MovimientoProveedor {
+  // Le pago (total o parcial). Puede quedar ligado a la boleta (gasto) que salda.
+  registrarPago(
+    monto: Dinero,
+    datos: { observaciones?: string; gastoId?: string; fecha?: Date } = {},
+  ): MovimientoProveedor {
     if (monto.esCero()) {
       throw new PagoProveedorInvalidoException('El pago debe ser mayor a cero');
     }
@@ -111,7 +114,7 @@ export class Proveedor {
     this.props.saldoAdeudado = redondearMoneda(
       this.props.saldoAdeudado - monto.monto,
     );
-    return MovimientoProveedor.pago(this.props.id, monto, { observaciones });
+    return MovimientoProveedor.pago(this.props.id, monto, datos);
   }
 
   // Revierte un cargo (al borrar la compra/gasto que lo generó). Se bloquea si

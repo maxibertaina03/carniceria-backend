@@ -34,6 +34,17 @@ export class CrearGastoDto {
   adeudado?: boolean;
 
   @ApiPropertyOptional({
+    description: 'Fecha de vencimiento de la boleta (solo si queda a deber)',
+    example: '2026-08-10',
+  })
+  @IsOptional()
+  @IsDateString(
+    {},
+    { message: 'El vencimiento debe tener formato válido (AAAA-MM-DD)' },
+  )
+  fechaVencimiento?: string;
+
+  @ApiPropertyOptional({
     description: 'Proveedor al que se le debe (obligatorio si es adeudado)',
   })
   @IsOptional()

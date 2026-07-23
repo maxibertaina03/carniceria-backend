@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { UnidadDeTrabajo } from '../../comun/aplicacion/unidad-de-trabajo';
 import { RegistradorDeudaProveedor } from '../../proveedores/aplicacion/puertos/registrador-deuda-proveedor';
-import { Gasto, GastoNoEncontradoException } from '../dominio/gasto';
+import {
+  Gasto,
+  GastoInvalidoException,
+  GastoNoEncontradoException,
+} from '../dominio/gasto';
 import { GastoDetalle, RepositorioGasto } from '../dominio/repositorio-gasto';
 
 export interface DatosGasto {
@@ -9,6 +13,7 @@ export interface DatosGasto {
   categoria?: string;
   monto: number;
   adeudado?: boolean;
+  fechaVencimiento?: Date;
   proveedorId?: string;
   observaciones?: string;
   fecha?: Date;
@@ -60,17 +65,49 @@ export class ServicioGastos {
     return this.obtener(gastoId);
   }
 
-  // Borra el gasto; si era adeudado, revierte la deuda (bloquea si ya se pagó parte).
+  // Marca una boleta adeudada como pagada: registra el pago al proveedor
+  // (baja su saldo) y deja el gasto como pagado, todo en una transacción.
+  async pagar(id: string): Promise<GastoDetalle> {
+    const gasto = await this.obtener(id);
+    if (!gasto.adeudado) {
+      throw new GastoInvalidoException(
+        'Este gasto ya estaba pagado (fue al contado)',
+      );
+    }
+    if (gasto.pagado) {
+      throw new GastoInvalidoException('Esta boleta ya figura como pagada');
+    }
+    await this.unidadDeTrabajo.ejecutar(async (ctx) => {
+      await this.repositorio.marcarPagado(gasto.id, ctx);
+      if (gasto.proveedorId) {
+        await this.registradorDeuda.registrarPagoPorGasto(
+          gasto.proveedorId,
+          gasto.id,
+          gasto.monto,
+          new Date(),
+          ctx,
+        );
+      }
+    });
+    return this.obtener(id);
+  }
+
+  // Borra el gasto. Si era adeudado: si ya se pagó, solo limpia los movimientos
+  // (cargo y pago se anulan); si no, revierte la deuda (bloquea si se pagó parte).
   async eliminar(id: string): Promise<void> {
     const gasto = await this.obtener(id);
     await this.unidadDeTrabajo.ejecutar(async (ctx) => {
       if (gasto.adeudado && gasto.proveedorId) {
-        await this.registradorDeuda.revertirCargoPorGasto(
-          gasto.proveedorId,
-          gasto.id,
-          gasto.monto,
-          ctx,
-        );
+        if (gasto.pagado) {
+          await this.registradorDeuda.limpiarMovimientosDeGasto(gasto.id, ctx);
+        } else {
+          await this.registradorDeuda.revertirCargoPorGasto(
+            gasto.proveedorId,
+            gasto.id,
+            gasto.monto,
+            ctx,
+          );
+        }
       }
       await this.repositorio.eliminar(id, ctx);
     });

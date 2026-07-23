@@ -51,6 +51,33 @@ export class RegistradorDeudaProveedorProveedores extends RegistradorDeudaProvee
     return this.cargar(proveedorId, monto, fecha, { gastoId }, ctx);
   }
 
+  async registrarPagoPorGasto(
+    proveedorId: string,
+    gastoId: string,
+    monto: number,
+    fecha: Date,
+    ctx?: ContextoTransaccion,
+  ): Promise<void> {
+    const proveedor = await this.repositorio.obtenerPorId(proveedorId, ctx);
+    if (!proveedor) {
+      throw new ProveedorNoEncontradoException(proveedorId);
+    }
+    const movimiento = proveedor.registrarPago(Dinero.desde(monto), {
+      gastoId,
+      fecha,
+      observaciones: 'Pago de boleta',
+    });
+    await this.repositorio.guardar(proveedor, ctx);
+    await this.repositorio.agregarMovimiento(movimiento, ctx);
+  }
+
+  limpiarMovimientosDeGasto(
+    gastoId: string,
+    ctx?: ContextoTransaccion,
+  ): Promise<void> {
+    return this.repositorio.eliminarMovimientosDeGasto(gastoId, ctx);
+  }
+
   revertirCargoPorCompra(
     proveedorId: string,
     compraId: string,

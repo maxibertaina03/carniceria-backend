@@ -22,6 +22,10 @@ export interface PropiedadesGasto {
   monto: number;
   // Si es adeudado, se registra como deuda al proveedor de abajo.
   adeudado: boolean;
+  // Cuándo vence la boleta (solo si está adeudada).
+  fechaVencimiento: Date | null;
+  // Si la boleta ya se pagó. Los gastos al contado nacen pagados.
+  pagado: boolean;
   proveedorId: string | null;
   observaciones: string | null;
 }
@@ -36,6 +40,7 @@ export class Gasto {
     categoria?: string;
     monto: number;
     adeudado?: boolean;
+    fechaVencimiento?: Date;
     proveedorId?: string;
     observaciones?: string;
     fecha?: Date;
@@ -61,6 +66,10 @@ export class Gasto {
       categoria: datos.categoria?.trim() || null,
       monto: monto.monto,
       adeudado,
+      // El vencimiento solo aplica a boletas que quedan a deber.
+      fechaVencimiento: adeudado ? (datos.fechaVencimiento ?? null) : null,
+      // Al contado nace pagado; adeudado nace pendiente de pago.
+      pagado: !adeudado,
       proveedorId: adeudado ? (datos.proveedorId ?? null) : null,
       observaciones: datos.observaciones?.trim() || null,
     });
@@ -88,10 +97,24 @@ export class Gasto {
   get adeudado() {
     return this.props.adeudado;
   }
+  get fechaVencimiento() {
+    return this.props.fechaVencimiento;
+  }
+  get pagado() {
+    return this.props.pagado;
+  }
   get proveedorId() {
     return this.props.proveedorId;
   }
   get observaciones() {
     return this.props.observaciones;
+  }
+
+  // Marca la boleta como pagada. Solo aplica a gastos adeudados pendientes.
+  marcarPagado(): void {
+    if (this.props.pagado) {
+      throw new GastoInvalidoException('Esta boleta ya figura como pagada');
+    }
+    this.props.pagado = true;
   }
 }
