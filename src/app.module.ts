@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { AppController } from './app.controller';
+import { GuardiaClaveApi } from './comun/seguridad/guardia-clave-api';
 import { CatalogoModule } from './catalogo/catalogo.module';
 import { ComprasModule } from './compras/compras.module';
 import { ComunModule } from './comun/comun.module';
@@ -25,5 +28,9 @@ import { VentasModule } from './ventas/ventas.module';
     PedidosModule,
     ReportesModule,
   ],
+  controllers: [AppController],
+  // Guardia global: exige la clave compartida en todos los endpoints
+  // (salvo los marcados como públicos, como el chequeo de salud).
+  providers: [{ provide: APP_GUARD, useClass: GuardiaClaveApi }],
 })
 export class AppModule {}
