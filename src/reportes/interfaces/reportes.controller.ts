@@ -24,6 +24,14 @@ export class ReportesController {
     return this.servicio.productosMasVendidos(rango.desde, rango.hasta);
   }
 
+  @Get('inicio')
+  @ApiOperation({
+    summary: 'Resumen para la pantalla de inicio: ventas de hoy, deudas, pedidos y boletas',
+  })
+  inicio() {
+    return this.servicio.resumenInicio();
+  }
+
   @Get('deudas')
   @ApiOperation({ summary: 'Clientes con deuda pendiente, de mayor a menor' })
   deudas() {

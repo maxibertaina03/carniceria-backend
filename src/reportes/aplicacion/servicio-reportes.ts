@@ -17,6 +17,10 @@ export class ServicioReportes {
     return this.consultas.deudas();
   }
 
+  resumenInicio() {
+    return this.consultas.resumenInicio();
+  }
+
   stock() {
     return this.consultas.stock();
   }

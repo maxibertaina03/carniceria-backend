@@ -8,6 +8,7 @@ import {
   ProductoMasVendido,
   RangoFechas,
   ReporteGanancias,
+  ResumenInicio,
   StockProducto,
 } from '../aplicacion/puertos/consultas-reportes';
 
@@ -94,6 +95,79 @@ export class ConsultasReportesPrisma extends ConsultasReportes {
       telefono: cliente.telefono,
       saldoDeudor: Number(cliente.saldoDeudor),
     }));
+  }
+
+  async resumenInicio(): Promise<ResumenInicio> {
+    const { fecha, desde, hasta } = this.diaDeHoyArgentina();
+
+    const ventas = await this.prisma.venta.aggregate({
+      where: { fecha: { gte: desde, lte: hasta } },
+      _count: { id: true },
+      _sum: { total: true, montoContado: true, montoFiado: true },
+    });
+
+    const porCobrar = await this.prisma.cliente.aggregate({
+      _sum: { saldoDeudor: true },
+    });
+    const porPagar = await this.prisma.proveedor.aggregate({
+      _sum: { saldoAdeudado: true },
+    });
+
+    const pedidosPendientes = await this.prisma.pedido.count({
+      where: { estado: 'PENDIENTE' },
+    });
+
+    // Boletas de gasto adeudadas y sin pagar: cuáles vencieron y cuáles vencen pronto.
+    const boletas = await this.prisma.gasto.findMany({
+      where: { adeudado: true, pagado: false },
+      select: { monto: true, fechaVencimiento: true },
+    });
+    const limite = new Date(`${fecha}T00:00:00Z`);
+    limite.setUTCDate(limite.getUTCDate() + 7);
+    const en7dias = limite.toISOString().slice(0, 10);
+    let vencidas = 0;
+    let porVencer = 0;
+    let totalAdeudado = 0;
+    for (const boleta of boletas) {
+      totalAdeudado += Number(boleta.monto);
+      if (!boleta.fechaVencimiento) continue;
+      const vence = boleta.fechaVencimiento.toISOString().slice(0, 10);
+      if (vence < fecha) vencidas++;
+      else if (vence <= en7dias) porVencer++;
+    }
+
+    return {
+      fecha,
+      ventasHoy: {
+        cantidad: ventas._count.id,
+        total: Number(ventas._sum.total ?? 0),
+        contado: Number(ventas._sum.montoContado ?? 0),
+        fiado: Number(ventas._sum.montoFiado ?? 0),
+      },
+      totalPorCobrar: redondearMoneda(Number(porCobrar._sum.saldoDeudor ?? 0)),
+      totalPorPagar: redondearMoneda(Number(porPagar._sum.saldoAdeudado ?? 0)),
+      pedidosPendientes,
+      boletas: {
+        vencidas,
+        porVencer,
+        totalAdeudado: redondearMoneda(totalAdeudado),
+      },
+    };
+  }
+
+  // Día de hoy en hora de Argentina (UTC−3), con el rango que cubre el día
+  // completo. Evita que las ventas de la tardecita cuenten como del día siguiente.
+  private diaDeHoyArgentina(): { fecha: string; desde: Date; hasta: Date } {
+    const art = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    const y = art.getUTCFullYear();
+    const m = String(art.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(art.getUTCDate()).padStart(2, '0');
+    const fecha = `${y}-${m}-${d}`;
+    return {
+      fecha,
+      desde: new Date(`${fecha}T00:00:00-03:00`),
+      hasta: new Date(`${fecha}T23:59:59.999-03:00`),
+    };
   }
 
   async stock(): Promise<StockProducto[]> {
