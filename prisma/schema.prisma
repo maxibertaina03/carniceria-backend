@@ -348,6 +348,71 @@ model MovimientoProveedor {
   @@map("movimientos_proveedor")
 }
 
+// --- Facturación (módulo administrador, aislado): comprobantes internos ---
+// Sin AFIP por ahora: letra "X" = documento interno sin validez fiscal.
+
+enum TipoComprobante {
+  FACTURA
+  NOTA_CREDITO
+  NOTA_DEBITO
+  RECIBO
+
+  @@map("tipo_comprobante")
+}
+
+enum EstadoComprobante {
+  EMITIDO
+  ANULADO
+
+  @@map("estado_comprobante")
+}
+
+model Comprobante {
+  id         String          @id @default(uuid())
+  tipo       TipoComprobante
+  letra      String          @default("X")
+  puntoVenta String          @default("0001") @map("punto_venta")
+  numero     Int
+  fecha      DateTime        @default(now())
+
+  // Receptor (a quién se le factura). Campos libres para clientes grandes.
+  receptorNombre    String  @map("receptor_nombre")
+  receptorDocTipo   String? @map("receptor_doc_tipo")
+  receptorDocNumero String? @map("receptor_doc_numero")
+  receptorDomicilio String? @map("receptor_domicilio")
+
+  neto        Decimal @db.Decimal(12, 2)
+  alicuotaIva Decimal @default(0) @map("alicuota_iva") @db.Decimal(5, 2)
+  iva         Decimal @default(0) @db.Decimal(12, 2)
+  total       Decimal @db.Decimal(12, 2)
+
+  observaciones String?
+  estado        EstadoComprobante @default(EMITIDO)
+
+  // Comprobante de origen (para notas de crédito/débito sobre una factura).
+  comprobanteOrigenId String? @map("comprobante_origen_id")
+
+  items             ItemComprobante[]
+  comprobanteOrigen Comprobante?      @relation("OrigenComprobante", fields: [comprobanteOrigenId], references: [id])
+  derivados         Comprobante[]     @relation("OrigenComprobante")
+
+  @@unique([tipo, puntoVenta, letra, numero])
+  @@map("comprobantes")
+}
+
+model ItemComprobante {
+  id             String  @id @default(uuid())
+  comprobanteId  String  @map("comprobante_id")
+  descripcion    String
+  cantidad       Decimal @db.Decimal(12, 3)
+  precioUnitario Decimal @map("precio_unitario") @db.Decimal(12, 2)
+  subtotal       Decimal @db.Decimal(12, 2)
+
+  comprobante Comprobante @relation(fields: [comprobanteId], references: [id], onDelete: Cascade)
+
+  @@map("items_comprobante")
+}
+
 // --- Gastos del negocio (no mercadería): alquiler, luz, sueldos, etc. ---
 
 model Gasto {

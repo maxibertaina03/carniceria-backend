@@ -7,6 +7,7 @@ import { ComprasModule } from './compras/compras.module';
 import { ComunModule } from './comun/comun.module';
 import { CuentasCorrientesModule } from './cuentas-corrientes/cuentas-corrientes.module';
 import { DesposteModule } from './desposte/desposte.module';
+import { FacturacionModule } from './facturacion/facturacion.module';
 import { GastosModule } from './gastos/gastos.module';
 import { PedidosModule } from './pedidos/pedidos.module';
 import { ProduccionModule } from './produccion/produccion.module';
@@ -27,6 +28,7 @@ import { VentasModule } from './ventas/ventas.module';
     ProduccionModule,
     PedidosModule,
     ReportesModule,
+    FacturacionModule,
   ],
   controllers: [AppController],
   // Guardia global: exige la clave compartida en todos los endpoints
