@@ -11,6 +11,7 @@ import { ItemVenta, Venta } from '../dominio/venta';
 import { ConsultaVentas, VentaDetalle } from './puertos/consulta-ventas';
 import { DescontadorStockProducto } from './puertos/descontador-stock-producto';
 import { RegistradorDeudaCliente } from './puertos/registrador-deuda-cliente';
+import { ResolvedorPresentaciones } from './puertos/resolvedor-presentaciones';
 
 export interface DatosRegistrarVenta {
   clienteId?: string;
@@ -20,9 +21,11 @@ export interface DatosRegistrarVenta {
   // fiado; un valor intermedio = pago mixto).
   montoFiado?: number;
   items: {
-    productoId: string;
+    // O bien un producto con su precio, o bien una presentación (½ kg, docena…).
+    productoId?: string;
+    presentacionId?: string;
     cantidad: number;
-    precioUnitarioVenta: number;
+    precioUnitarioVenta?: number;
   }[];
 }
 
@@ -36,6 +39,7 @@ export class ServicioVentas {
     private readonly descontadorStock: DescontadorStockProducto,
     private readonly registradorDeuda: RegistradorDeudaCliente,
     private readonly ajustadorStock: AjustadorStockProducto,
+    private readonly resolvedorPresentaciones: ResolvedorPresentaciones,
   ) {}
 
   // Registra la venta en una única transacción: descuenta stock (se bloquea
@@ -49,8 +53,33 @@ export class ServicioVentas {
 
       const itemsDominio: ItemVenta[] = [];
       for (const item of datos.items ?? []) {
+        // La línea puede venir como producto+precio, o como una presentación
+        // (½ kg, docena…), que se resuelve a producto base + cantidad + precio.
+        let productoId = item.productoId;
+        let cantidad = item.cantidad;
+        let precioUnitario = item.precioUnitarioVenta;
+        if (item.presentacionId) {
+          const pres = await this.resolvedorPresentaciones.resolver(
+            item.presentacionId,
+            ctx,
+          );
+          if (!pres) {
+            throw new VentaInvalidaException(
+              'La presentación elegida no existe',
+            );
+          }
+          productoId = pres.productoId;
+          cantidad = item.cantidad * pres.cantidadEquivalente;
+          precioUnitario = pres.precio / pres.cantidadEquivalente;
+        }
+        if (!productoId || precioUnitario === undefined) {
+          throw new VentaInvalidaException(
+            'Cada línea debe indicar un producto con precio o una presentación',
+          );
+        }
+
         const producto = await this.lectorProductos.obtenerProducto(
-          item.productoId,
+          productoId,
           ctx,
         );
         if (!producto) {
@@ -66,8 +95,8 @@ export class ServicioVentas {
         itemsDominio.push(
           ItemVenta.crear({
             productoId: producto.id,
-            cantidad: item.cantidad,
-            precioUnitarioVenta: item.precioUnitarioVenta,
+            cantidad,
+            precioUnitarioVenta: precioUnitario,
             costoUnitario: producto.costoUnitarioReferencia,
             unidadMedida: producto.unidadMedida,
           }),

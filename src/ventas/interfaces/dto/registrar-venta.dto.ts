@@ -4,7 +4,6 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsDateString,
-  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsPositive,
@@ -14,23 +13,39 @@ import {
 } from 'class-validator';
 
 export class ItemVentaDto {
-  @ApiProperty({ description: 'Id del producto vendido' })
+  @ApiPropertyOptional({
+    description:
+      'Id del producto vendido. Obligatorio salvo que se venda por presentación.',
+  })
+  @IsOptional()
   @IsString({ message: 'El id del producto debe ser un texto' })
-  @IsNotEmpty({ message: 'Cada línea de la venta debe indicar un producto' })
-  productoId: string;
+  productoId?: string;
 
-  @ApiProperty({ description: 'Cantidad vendida (en la unidad del producto)', example: 1.5 })
+  @ApiPropertyOptional({
+    description:
+      'Id de la presentación vendida (½ kg, docena…). Si viene, se usa en lugar de producto/precio.',
+  })
+  @IsOptional()
+  @IsString({ message: 'El id de la presentación debe ser un texto' })
+  presentacionId?: string;
+
+  @ApiProperty({
+    description: 'Cantidad vendida (en unidades del producto, o de la presentación)',
+    example: 1.5,
+  })
   @IsNumber({}, { message: 'La cantidad debe ser un número' })
   @IsPositive({ message: 'La cantidad debe ser mayor a cero' })
   cantidad: number;
 
-  @ApiProperty({
-    description: 'Precio de venta por unidad (se puede usar el de referencia o cambiarlo)',
+  @ApiPropertyOptional({
+    description:
+      'Precio de venta por unidad del producto (no se usa si se vende por presentación)',
     example: 7500,
   })
+  @IsOptional()
   @IsNumber({}, { message: 'El precio de venta debe ser un número' })
   @Min(0, { message: 'El precio de venta no puede ser negativo' })
-  precioUnitarioVenta: number;
+  precioUnitarioVenta?: number;
 }
 
 export class RegistrarVentaDto {

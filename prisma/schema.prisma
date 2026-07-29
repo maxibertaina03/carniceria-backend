@@ -69,8 +69,26 @@ model Producto {
   itemsProduccion     ItemProduccion[]
   itemsPedido         ItemPedido[]
   lotes               Lote[]
+  presentaciones      Presentacion[]
 
   @@map("productos")
+}
+
+// Presentación de venta de un producto (½ kg, 1 kg, docena…). Solo se usa en
+// rubros con la función activada. Al vender una presentación, se descuenta del
+// stock base la cantidad equivalente y se cobra su precio.
+model Presentacion {
+  id                  String   @id @default(uuid())
+  productoId          String   @map("producto_id")
+  nombre              String
+  // Cuánto del stock base (en la unidad del producto) equivale 1 presentación.
+  cantidadEquivalente Decimal  @map("cantidad_equivalente") @db.Decimal(12, 3)
+  precio              Decimal  @db.Decimal(12, 2)
+  activo              Boolean  @default(true)
+
+  producto Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
+  @@map("presentaciones")
 }
 
 // Lote de stock con fecha de elaboración y vencimiento. Se usa solo cuando el
