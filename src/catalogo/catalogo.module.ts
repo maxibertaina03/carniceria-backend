@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ActualizadorStockProducto } from '../compras/aplicacion/puertos/actualizador-stock-producto';
+import { ConfiguracionModule } from '../configuracion/configuracion.module';
 import { DescontadorStockProducto } from '../ventas/aplicacion/puertos/descontador-stock-producto';
 import { AjustadorStockProducto } from './aplicacion/puertos/ajustador-stock-producto';
 import { LectorProductosCatalogo } from './aplicacion/puertos/lector-productos-catalogo';
@@ -13,6 +14,7 @@ import { RepositorioProductoPrisma } from './infraestructura/repositorio-product
 import { ProductosController } from './interfaces/productos.controller';
 
 @Module({
+  imports: [ConfiguracionModule],
   controllers: [ProductosController],
   providers: [
     ServicioProductos,

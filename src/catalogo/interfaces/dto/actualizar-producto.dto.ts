@@ -9,7 +9,6 @@ import {
   Min,
 } from 'class-validator';
 import { UNIDADES_MEDIDA, UnidadMedida } from '../../../comun/dominio/unidad-medida';
-import { CATEGORIAS_PRODUCTO, CategoriaProducto } from '../../dominio/categoria-producto';
 
 export class ActualizarProductoDto {
   @ApiPropertyOptional({ description: 'Nombre del producto' })
@@ -18,12 +17,10 @@ export class ActualizarProductoDto {
   @IsNotEmpty({ message: 'El nombre del producto no puede estar vacío' })
   nombre?: string;
 
-  @ApiPropertyOptional({ description: 'Categoría', enum: CATEGORIAS_PRODUCTO })
+  @ApiPropertyOptional({ description: 'Código de categoría (según el rubro)' })
   @IsOptional()
-  @IsIn(CATEGORIAS_PRODUCTO, {
-    message: `La categoría debe ser una de: ${CATEGORIAS_PRODUCTO.join(', ')}`,
-  })
-  categoria?: CategoriaProducto;
+  @IsString({ message: 'La categoría debe ser un texto' })
+  categoria?: string;
 
   @ApiPropertyOptional({ description: 'Subcategoría opcional (texto libre)' })
   @IsOptional()

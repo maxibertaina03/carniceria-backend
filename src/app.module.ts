@@ -5,6 +5,7 @@ import { GuardiaClaveApi } from './comun/seguridad/guardia-clave-api';
 import { CatalogoModule } from './catalogo/catalogo.module';
 import { ComprasModule } from './compras/compras.module';
 import { ComunModule } from './comun/comun.module';
+import { ConfiguracionModule } from './configuracion/configuracion.module';
 import { CuentasCorrientesModule } from './cuentas-corrientes/cuentas-corrientes.module';
 import { DesposteModule } from './desposte/desposte.module';
 import { FacturacionModule } from './facturacion/facturacion.module';
@@ -18,6 +19,7 @@ import { VentasModule } from './ventas/ventas.module';
 @Module({
   imports: [
     ComunModule,
+    ConfiguracionModule,
     CatalogoModule,
     ComprasModule,
     VentasModule,

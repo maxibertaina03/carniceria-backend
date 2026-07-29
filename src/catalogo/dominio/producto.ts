@@ -3,7 +3,6 @@ import { Cantidad } from '../../comun/dominio/cantidad';
 import { Dinero } from '../../comun/dominio/dinero';
 import { redondearCantidad } from '../../comun/dominio/redondeo';
 import { UnidadMedida } from '../../comun/dominio/unidad-medida';
-import { CategoriaProducto } from './categoria-producto';
 import {
   ProductoInvalidoException,
   StockInsuficienteException,
@@ -12,7 +11,8 @@ import {
 export interface PropiedadesProducto {
   id: string;
   nombre: string;
-  categoria: CategoriaProducto;
+  // Código de categoría (validado contra la config del rubro en la capa de aplicación).
+  categoria: string;
   subcategoria: string | null;
   unidadMedida: UnidadMedida;
   stockActual: number;
@@ -25,7 +25,7 @@ export interface PropiedadesProducto {
 
 export interface DatosNuevoProducto {
   nombre: string;
-  categoria: CategoriaProducto;
+  categoria: string;
   subcategoria?: string;
   unidadMedida?: UnidadMedida;
   costoUnitarioReferencia?: number;
@@ -157,7 +157,7 @@ export class Producto {
 
   actualizarDatos(datos: {
     nombre?: string;
-    categoria?: CategoriaProducto;
+    categoria?: string;
     subcategoria?: string | null;
     unidadMedida?: UnidadMedida;
     seVende?: boolean;

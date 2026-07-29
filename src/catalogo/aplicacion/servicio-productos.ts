@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { UnidadMedida } from '../../comun/dominio/unidad-medida';
 import { Dinero } from '../../comun/dominio/dinero';
-import { CategoriaProducto } from '../dominio/categoria-producto';
+import { LectorConfiguracion } from '../../configuracion/aplicacion/puertos/lector-configuracion';
 import {
   NombreProductoDuplicadoException,
+  ProductoInvalidoException,
   ProductoNoEncontradoException,
 } from '../dominio/excepciones';
 import { DatosNuevoProducto, Producto } from '../dominio/producto';
@@ -11,7 +12,7 @@ import { RepositorioProducto } from '../dominio/repositorio-producto';
 
 export interface DatosActualizarProducto {
   nombre?: string;
-  categoria?: CategoriaProducto;
+  categoria?: string;
   subcategoria?: string;
   unidadMedida?: UnidadMedida;
   costoUnitarioReferencia?: number;
@@ -22,13 +23,27 @@ export interface DatosActualizarProducto {
 
 @Injectable()
 export class ServicioProductos {
-  constructor(private readonly repositorio: RepositorioProducto) {}
+  constructor(
+    private readonly repositorio: RepositorioProducto,
+    private readonly configuracion: LectorConfiguracion,
+  ) {}
 
   async crear(datos: DatosNuevoProducto): Promise<Producto> {
+    this.validarCategoria(datos.categoria);
     await this.verificarNombreDisponible(datos.nombre);
     const producto = Producto.crear(datos);
     await this.repositorio.guardar(producto);
     return producto;
+  }
+
+  // La categoría válida depende del rubro (config), no de una lista fija.
+  private validarCategoria(categoria: string): void {
+    const validas = this.configuracion.categoriasValidas();
+    if (!validas.includes(categoria)) {
+      throw new ProductoInvalidoException(
+        `La categoría "${categoria}" no es válida para este negocio. Opciones: ${validas.join(', ')}`,
+      );
+    }
   }
 
   listar(incluirInactivos = false): Promise<Producto[]> {
@@ -48,6 +63,10 @@ export class ServicioProductos {
     datos: DatosActualizarProducto,
   ): Promise<Producto> {
     const producto = await this.obtener(id);
+
+    if (datos.categoria !== undefined) {
+      this.validarCategoria(datos.categoria);
+    }
 
     if (datos.nombre !== undefined && datos.nombre.trim() !== producto.nombre) {
       await this.verificarNombreDisponible(datos.nombre, id);

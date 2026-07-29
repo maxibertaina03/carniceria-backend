@@ -1,13 +1,14 @@
 // Semilla de datos: productos típicos del rubro.
 // Se cargan con stock 0 y precios 0; se completan con la primera compra
 // o editando el producto desde la aplicación.
-import { PrismaClient, CategoriaProducto, UnidadMedida } from '@prisma/client';
+import { PrismaClient, UnidadMedida } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 interface ProductoSemilla {
   nombre: string;
-  categoria: CategoriaProducto;
+  // Código de categoría (según el rubro). El seed actual es de carnicería.
+  categoria: string;
   unidadMedida?: UnidadMedida;
   // Los insumos y cortes intermedios no se venden al mostrador.
   seVende?: boolean;

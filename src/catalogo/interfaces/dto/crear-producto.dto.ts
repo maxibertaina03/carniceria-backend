@@ -9,7 +9,6 @@ import {
   Min,
 } from 'class-validator';
 import { UNIDADES_MEDIDA, UnidadMedida } from '../../../comun/dominio/unidad-medida';
-import { CATEGORIAS_PRODUCTO, CategoriaProducto } from '../../dominio/categoria-producto';
 
 export class CrearProductoDto {
   @ApiProperty({ description: 'Nombre del producto', example: 'Milanesas' })
@@ -18,14 +17,13 @@ export class CrearProductoDto {
   nombre: string;
 
   @ApiProperty({
-    description: 'Categoría del producto',
-    enum: CATEGORIAS_PRODUCTO,
+    description: 'Código de categoría (según el rubro del negocio)',
     example: 'VACUNO',
   })
-  @IsIn(CATEGORIAS_PRODUCTO, {
-    message: `La categoría debe ser una de: ${CATEGORIAS_PRODUCTO.join(', ')}`,
-  })
-  categoria: CategoriaProducto;
+  // La categoría válida depende del rubro; la valida el servicio contra la config.
+  @IsString({ message: 'La categoría debe ser un texto' })
+  @IsNotEmpty({ message: 'La categoría es obligatoria' })
+  categoria: string;
 
   @ApiPropertyOptional({
     description: 'Subcategoría opcional (ej. base de la milanesa: "Cerdo")',

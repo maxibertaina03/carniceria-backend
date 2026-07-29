@@ -10,19 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum CategoriaProducto {
-  VACUNO
-  CERDO
-  AVE
-  CHACINADOS
-  MILANESAS
-  HAMBURGUESAS
-  INSUMOS
-  OTROS
-
-  @@map("categoria_producto")
-}
-
 enum UnidadMedida {
   KG
   GRAMO
@@ -58,7 +45,7 @@ enum TipoMovimiento {
 model Producto {
   id                      String            @id @default(uuid())
   nombre                  String
-  categoria               CategoriaProducto
+  categoria               String            @map("categoria")
   // Detalle opcional dentro de la categoría (ej. milanesa "de cerdo").
   subcategoria            String?
   unidadMedida            UnidadMedida      @default(KG) @map("unidad_medida")

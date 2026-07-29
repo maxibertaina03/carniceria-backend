@@ -3,7 +3,6 @@ import { Producto as ProductoPrisma } from '@prisma/client';
 import { ContextoTransaccion } from '../../comun/dominio/contexto-transaccion';
 import { clienteDeContexto } from '../../comun/infraestructura/cliente-de-contexto';
 import { PrismaService } from '../../comun/infraestructura/prisma.service';
-import { CategoriaProducto } from '../dominio/categoria-producto';
 import { Producto } from '../dominio/producto';
 import { RepositorioProducto } from '../dominio/repositorio-producto';
 import { UnidadMedida } from '../../comun/dominio/unidad-medida';
@@ -63,7 +62,7 @@ export class RepositorioProductoPrisma extends RepositorioProducto {
     return Producto.reconstruir({
       id: fila.id,
       nombre: fila.nombre,
-      categoria: fila.categoria as CategoriaProducto,
+      categoria: fila.categoria,
       subcategoria: fila.subcategoria,
       unidadMedida: fila.unidadMedida as UnidadMedida,
       stockActual: Number(fila.stockActual),
