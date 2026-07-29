@@ -35,7 +35,11 @@ export const REGISTRO_RUBROS: Record<Rubro, ConfiguracionNegocio> = {
       { codigo: 'OTROS', nombre: 'Otros', producible: false, esInsumo: false },
     ],
     features: { lotes: false, presentaciones: false },
-    etiquetas: {},
+    etiquetas: {
+      ejemploProducto: 'Milanesas',
+      ejemploSubcategoria: 'Cerdo, Vaca, Pollo',
+      ejemploInsumos: 'sal, pimienta, tripa',
+    },
   },
   pastas: {
     rubro: 'pastas',
@@ -52,7 +56,11 @@ export const REGISTRO_RUBROS: Record<Rubro, ConfiguracionNegocio> = {
       { codigo: 'OTROS', nombre: 'Otros', producible: false, esInsumo: false },
     ],
     features: { lotes: true, presentaciones: true },
-    etiquetas: {},
+    etiquetas: {
+      ejemploProducto: 'Ravioles',
+      ejemploSubcategoria: 'Ricota, Verdura, Jamón y queso',
+      ejemploInsumos: 'harina, huevos, ricota',
+    },
   },
 };
 
