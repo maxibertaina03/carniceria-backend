@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { UnidadDeTrabajo } from '../../comun/aplicacion/unidad-de-trabajo';
 import { UnidadMedida } from '../../comun/dominio/unidad-medida';
 import { Dinero } from '../../comun/dominio/dinero';
 import { LectorConfiguracion } from '../../configuracion/aplicacion/puertos/lector-configuracion';
@@ -9,6 +10,7 @@ import {
 } from '../dominio/excepciones';
 import { DatosNuevoProducto, Producto } from '../dominio/producto';
 import { RepositorioProducto } from '../dominio/repositorio-producto';
+import { GestorLotes } from './gestor-lotes';
 
 export interface DatosActualizarProducto {
   nombre?: string;
@@ -18,6 +20,7 @@ export interface DatosActualizarProducto {
   costoUnitarioReferencia?: number;
   precioVentaReferencia?: number;
   seVende?: boolean;
+  diasVencimiento?: number | null;
   activo?: boolean;
 }
 
@@ -26,6 +29,8 @@ export class ServicioProductos {
   constructor(
     private readonly repositorio: RepositorioProducto,
     private readonly configuracion: LectorConfiguracion,
+    private readonly unidadDeTrabajo: UnidadDeTrabajo,
+    private readonly gestorLotes: GestorLotes,
   ) {}
 
   async crear(datos: DatosNuevoProducto): Promise<Producto> {
@@ -78,6 +83,7 @@ export class ServicioProductos {
       subcategoria: datos.subcategoria,
       unidadMedida: datos.unidadMedida,
       seVende: datos.seVende,
+      diasVencimiento: datos.diasVencimiento,
     });
     producto.actualizarPreciosReferencia(
       datos.costoUnitarioReferencia !== undefined
@@ -97,12 +103,20 @@ export class ServicioProductos {
     return producto;
   }
 
-  // Corrige el stock dejándolo en la cantidad real contada.
+  // Corrige el stock dejándolo en la cantidad real contada. Si el rubro usa
+  // lotes, reconcilia los lotes para que acompañen el nuevo total.
   async ajustarStock(id: string, cantidad: number): Promise<Producto> {
-    const producto = await this.obtener(id);
-    producto.ajustarStock(cantidad);
-    await this.repositorio.guardar(producto);
-    return producto;
+    return this.unidadDeTrabajo.ejecutar(async (ctx) => {
+      const producto = await this.repositorio.obtenerPorId(id, ctx);
+      if (!producto) {
+        throw new ProductoNoEncontradoException(id);
+      }
+      const anterior = producto.stockActual;
+      producto.ajustarStock(cantidad);
+      await this.repositorio.guardar(producto, ctx);
+      await this.gestorLotes.reconciliarAjuste(id, anterior, cantidad, ctx);
+      return producto;
+    });
   }
 
   async desactivar(id: string): Promise<void> {

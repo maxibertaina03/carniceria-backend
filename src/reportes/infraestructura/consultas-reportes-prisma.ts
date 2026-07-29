@@ -136,6 +136,21 @@ export class ConsultasReportesPrisma extends ConsultasReportes {
       else if (vence <= en7dias) porVencer++;
     }
 
+    // Lotes de mercadería con stock y vencimiento: cuáles vencieron y cuáles
+    // vencen pronto (solo hay lotes en rubros que usan la función).
+    const lotesConVenc = await this.prisma.lote.findMany({
+      where: { cantidadDisponible: { gt: 0 }, fechaVencimiento: { not: null } },
+      select: { fechaVencimiento: true },
+    });
+    let lotesVencidos = 0;
+    let lotesPorVencer = 0;
+    for (const lote of lotesConVenc) {
+      if (!lote.fechaVencimiento) continue;
+      const vence = lote.fechaVencimiento.toISOString().slice(0, 10);
+      if (vence < fecha) lotesVencidos++;
+      else if (vence <= en7dias) lotesPorVencer++;
+    }
+
     return {
       fecha,
       ventasHoy: {
@@ -151,6 +166,10 @@ export class ConsultasReportesPrisma extends ConsultasReportes {
         vencidas,
         porVencer,
         totalAdeudado: redondearMoneda(totalAdeudado),
+      },
+      lotes: {
+        vencidos: lotesVencidos,
+        porVencer: lotesPorVencer,
       },
     };
   }

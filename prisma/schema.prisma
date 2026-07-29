@@ -54,6 +54,9 @@ model Producto {
   precioVentaReferencia   Decimal           @default(0) @map("precio_venta_referencia") @db.Decimal(12, 2)
   // Si es false, no aparece en la pantalla de Ventas (insumos, cortes intermedios).
   seVende                 Boolean           @default(true) @map("se_vende")
+  // Días que dura el producto desde su elaboración (para lotes con vencimiento;
+  // solo se usa en rubros con la función de lotes activada). Null = no vence.
+  diasVencimiento         Int?              @map("dias_vencimiento")
   activo                  Boolean           @default(true)
   fechaCreacion           DateTime          @default(now()) @map("fecha_creacion")
 
@@ -65,8 +68,26 @@ model Producto {
   ordenesProduccion   OrdenProduccion[]
   itemsProduccion     ItemProduccion[]
   itemsPedido         ItemPedido[]
+  lotes               Lote[]
 
   @@map("productos")
+}
+
+// Lote de stock con fecha de elaboración y vencimiento. Se usa solo cuando el
+// rubro tiene la función de lotes activada (ej. fábrica de pastas). El stock se
+// descuenta primero de los lotes que vencen antes (FIFO por vencimiento).
+model Lote {
+  id                 String    @id @default(uuid())
+  productoId         String    @map("producto_id")
+  fechaElaboracion   DateTime  @default(now()) @map("fecha_elaboracion")
+  fechaVencimiento   DateTime? @map("fecha_vencimiento")
+  cantidadInicial    Decimal   @map("cantidad_inicial") @db.Decimal(12, 3)
+  cantidadDisponible Decimal   @map("cantidad_disponible") @db.Decimal(12, 3)
+
+  producto Producto @relation(fields: [productoId], references: [id])
+
+  @@index([productoId, cantidadDisponible])
+  @@map("lotes")
 }
 
 model Compra {

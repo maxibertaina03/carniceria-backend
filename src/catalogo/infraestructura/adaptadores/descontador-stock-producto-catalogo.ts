@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Cantidad } from '../../../comun/dominio/cantidad';
 import { ContextoTransaccion } from '../../../comun/dominio/contexto-transaccion';
 import { DescontadorStockProducto } from '../../../ventas/aplicacion/puertos/descontador-stock-producto';
+import { GestorLotes } from '../../aplicacion/gestor-lotes';
 import { ProductoNoEncontradoException } from '../../dominio/excepciones';
 import { RepositorioProducto } from '../../dominio/repositorio-producto';
 
@@ -9,7 +10,10 @@ import { RepositorioProducto } from '../../dominio/repositorio-producto';
 // aplicando la invariante del dominio (el stock no puede quedar negativo).
 @Injectable()
 export class DescontadorStockProductoCatalogo extends DescontadorStockProducto {
-  constructor(private readonly repositorio: RepositorioProducto) {
+  constructor(
+    private readonly repositorio: RepositorioProducto,
+    private readonly gestorLotes: GestorLotes,
+  ) {
     super();
   }
 
@@ -24,5 +28,7 @@ export class DescontadorStockProductoCatalogo extends DescontadorStockProducto {
     }
     producto.disminuirStock(Cantidad.desde(cantidad, producto.unidadMedida));
     await this.repositorio.guardar(producto, ctx);
+    // Si el rubro usa lotes, se descuenta de los que vencen antes primero.
+    await this.gestorLotes.descontar(productoId, cantidad, ctx);
   }
 }

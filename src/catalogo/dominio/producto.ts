@@ -19,6 +19,8 @@ export interface PropiedadesProducto {
   costoUnitarioReferencia: number;
   precioVentaReferencia: number;
   seVende: boolean;
+  // Días que dura desde su elaboración (para lotes con vencimiento). Null = no vence.
+  diasVencimiento: number | null;
   activo: boolean;
   fechaCreacion: Date;
 }
@@ -31,6 +33,7 @@ export interface DatosNuevoProducto {
   costoUnitarioReferencia?: number;
   precioVentaReferencia?: number;
   seVende?: boolean;
+  diasVencimiento?: number | null;
   // Cuánto hay hoy de este producto al darlo de alta (opcional).
   stockInicial?: number;
 }
@@ -54,9 +57,20 @@ export class Producto {
         datos.precioVentaReferencia ?? 0,
       ).monto,
       seVende: datos.seVende ?? true,
+      diasVencimiento: Producto.validarDiasVencimiento(datos.diasVencimiento),
       activo: true,
       fechaCreacion: new Date(),
     });
+  }
+
+  private static validarDiasVencimiento(dias?: number | null): number | null {
+    if (dias === undefined || dias === null) return null;
+    if (!Number.isInteger(dias) || dias <= 0) {
+      throw new ProductoInvalidoException(
+        'Los días de vencimiento deben ser un número entero mayor a cero',
+      );
+    }
+    return dias;
   }
 
   static reconstruir(props: PropiedadesProducto): Producto {
@@ -110,6 +124,9 @@ export class Producto {
   get seVende() {
     return this.props.seVende;
   }
+  get diasVencimiento() {
+    return this.props.diasVencimiento;
+  }
   get activo() {
     return this.props.activo;
   }
@@ -161,7 +178,13 @@ export class Producto {
     subcategoria?: string | null;
     unidadMedida?: UnidadMedida;
     seVende?: boolean;
+    diasVencimiento?: number | null;
   }): void {
+    if (datos.diasVencimiento !== undefined) {
+      this.props.diasVencimiento = Producto.validarDiasVencimiento(
+        datos.diasVencimiento,
+      );
+    }
     if (datos.nombre !== undefined) {
       this.props.nombre = Producto.validarNombre(datos.nombre);
     }

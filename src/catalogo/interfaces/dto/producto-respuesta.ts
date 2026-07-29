@@ -10,6 +10,7 @@ export interface ProductoRespuesta {
   costoUnitarioReferencia: number;
   precioVentaReferencia: number;
   seVende: boolean;
+  diasVencimiento: number | null;
   activo: boolean;
   fechaCreacion: Date;
 }
@@ -25,6 +26,7 @@ export function aProductoRespuesta(producto: Producto): ProductoRespuesta {
     costoUnitarioReferencia: producto.costoUnitarioReferencia,
     precioVentaReferencia: producto.precioVentaReferencia,
     seVende: producto.seVende,
+    diasVencimiento: producto.diasVencimiento,
     activo: producto.activo,
     fechaCreacion: producto.fechaCreacion,
   };

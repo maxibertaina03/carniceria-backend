@@ -61,6 +61,11 @@ export interface ResumenInicio {
     porVencer: number; // boletas que vencen dentro de 7 días
     totalAdeudado: number; // total de boletas sin pagar
   };
+  // Lotes de mercadería con vencimiento (rubros con lotes; 0 si no se usan).
+  lotes: {
+    vencidos: number; // lotes con stock cuyo vencimiento ya pasó
+    porVencer: number; // lotes que vencen dentro de 7 días
+  };
 }
 
 export abstract class ConsultasReportes {

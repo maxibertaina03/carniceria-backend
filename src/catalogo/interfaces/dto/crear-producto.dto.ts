@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsIn,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -80,4 +81,14 @@ export class CrearProductoDto {
   @IsNumber({}, { message: 'El stock inicial debe ser un número' })
   @Min(0, { message: 'El stock inicial no puede ser negativo' })
   stockInicial?: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Días que dura desde su elaboración (para lotes con vencimiento). Vacío = no vence.',
+    example: 4,
+  })
+  @IsOptional()
+  @IsInt({ message: 'Los días de vencimiento deben ser un número entero' })
+  @Min(1, { message: 'Los días de vencimiento deben ser mayor a cero' })
+  diasVencimiento?: number;
 }
