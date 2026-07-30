@@ -57,6 +57,8 @@ model Producto {
   // Días que dura el producto desde su elaboración (para lotes con vencimiento;
   // solo se usa en rubros con la función de lotes activada). Null = no vence.
   diasVencimiento         Int?              @map("dias_vencimiento")
+  // Foto del producto (opcional), guardada como data URI en base64.
+  imagen                  String?           @db.Text
   activo                  Boolean           @default(true)
   fechaCreacion           DateTime          @default(now()) @map("fecha_creacion")
 

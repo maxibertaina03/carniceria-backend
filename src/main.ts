@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { FiltroExcepcionesDominio } from './comun/infraestructura/filtro-excepciones-dominio';
 
@@ -18,6 +19,9 @@ async function bootstrap() {
     .map((o) => o.trim())
     .filter(Boolean);
   app.enableCors({ origin: origenes.length > 0 ? origenes : true });
+  // Las fotos de producto viajan en base64 dentro del JSON: subimos el límite.
+  app.use(json({ limit: '6mb' }));
+  app.use(urlencoded({ extended: true, limit: '6mb' }));
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

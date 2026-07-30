@@ -11,6 +11,7 @@ export interface ProductoRespuesta {
   precioVentaReferencia: number;
   seVende: boolean;
   diasVencimiento: number | null;
+  imagen: string | null;
   activo: boolean;
   fechaCreacion: Date;
 }
@@ -27,6 +28,7 @@ export function aProductoRespuesta(producto: Producto): ProductoRespuesta {
     precioVentaReferencia: producto.precioVentaReferencia,
     seVende: producto.seVende,
     diasVencimiento: producto.diasVencimiento,
+    imagen: producto.imagen,
     activo: producto.activo,
     fechaCreacion: producto.fechaCreacion,
   };

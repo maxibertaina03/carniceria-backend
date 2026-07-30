@@ -91,4 +91,9 @@ export class CrearProductoDto {
   @IsInt({ message: 'Los días de vencimiento deben ser un número entero' })
   @Min(1, { message: 'Los días de vencimiento deben ser mayor a cero' })
   diasVencimiento?: number;
+
+  @ApiPropertyOptional({ description: 'Foto del producto (data URI base64)' })
+  @IsOptional()
+  @IsString({ message: 'La imagen debe ser un texto (data URI)' })
+  imagen?: string;
 }

@@ -72,4 +72,10 @@ export class ActualizarProductoDto {
   @IsInt({ message: 'Los días de vencimiento deben ser un número entero' })
   @Min(1, { message: 'Los días de vencimiento deben ser mayor a cero' })
   diasVencimiento?: number | null;
+
+  @ApiPropertyOptional({ description: 'Foto (data URI base64); null para quitarla' })
+  @IsOptional()
+  @ValidateIf((_, valor) => valor !== null)
+  @IsString({ message: 'La imagen debe ser un texto (data URI)' })
+  imagen?: string | null;
 }

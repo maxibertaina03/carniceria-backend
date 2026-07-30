@@ -21,6 +21,7 @@ export interface DatosActualizarProducto {
   precioVentaReferencia?: number;
   seVende?: boolean;
   diasVencimiento?: number | null;
+  imagen?: string | null;
   activo?: boolean;
 }
 
@@ -84,6 +85,7 @@ export class ServicioProductos {
       unidadMedida: datos.unidadMedida,
       seVende: datos.seVende,
       diasVencimiento: datos.diasVencimiento,
+      imagen: datos.imagen,
     });
     producto.actualizarPreciosReferencia(
       datos.costoUnitarioReferencia !== undefined

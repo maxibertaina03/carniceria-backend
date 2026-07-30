@@ -49,6 +49,7 @@ export class RepositorioProductoPrisma extends RepositorioProducto {
       precioVentaReferencia: producto.precioVentaReferencia,
       seVende: producto.seVende,
       diasVencimiento: producto.diasVencimiento,
+      imagen: producto.imagen,
       activo: producto.activo,
       fechaCreacion: producto.fechaCreacion,
     };
@@ -71,6 +72,7 @@ export class RepositorioProductoPrisma extends RepositorioProducto {
       precioVentaReferencia: Number(fila.precioVentaReferencia),
       seVende: fila.seVende,
       diasVencimiento: fila.diasVencimiento,
+      imagen: fila.imagen,
       activo: fila.activo,
       fechaCreacion: fila.fechaCreacion,
     });

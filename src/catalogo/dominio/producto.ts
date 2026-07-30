@@ -21,6 +21,8 @@ export interface PropiedadesProducto {
   seVende: boolean;
   // Días que dura desde su elaboración (para lotes con vencimiento). Null = no vence.
   diasVencimiento: number | null;
+  // Foto del producto (opcional), guardada como data URI (base64). Null = sin foto.
+  imagen: string | null;
   activo: boolean;
   fechaCreacion: Date;
 }
@@ -34,6 +36,7 @@ export interface DatosNuevoProducto {
   precioVentaReferencia?: number;
   seVende?: boolean;
   diasVencimiento?: number | null;
+  imagen?: string | null;
   // Cuánto hay hoy de este producto al darlo de alta (opcional).
   stockInicial?: number;
 }
@@ -58,6 +61,7 @@ export class Producto {
       ).monto,
       seVende: datos.seVende ?? true,
       diasVencimiento: Producto.validarDiasVencimiento(datos.diasVencimiento),
+      imagen: datos.imagen || null,
       activo: true,
       fechaCreacion: new Date(),
     });
@@ -127,6 +131,9 @@ export class Producto {
   get diasVencimiento() {
     return this.props.diasVencimiento;
   }
+  get imagen() {
+    return this.props.imagen;
+  }
   get activo() {
     return this.props.activo;
   }
@@ -179,11 +186,15 @@ export class Producto {
     unidadMedida?: UnidadMedida;
     seVende?: boolean;
     diasVencimiento?: number | null;
+    imagen?: string | null;
   }): void {
     if (datos.diasVencimiento !== undefined) {
       this.props.diasVencimiento = Producto.validarDiasVencimiento(
         datos.diasVencimiento,
       );
+    }
+    if (datos.imagen !== undefined) {
+      this.props.imagen = datos.imagen || null;
     }
     if (datos.nombre !== undefined) {
       this.props.nombre = Producto.validarNombre(datos.nombre);
