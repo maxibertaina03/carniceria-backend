@@ -12,6 +12,7 @@ import {
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ServicioProductos } from '../aplicacion/servicio-productos';
 import { ActualizarProductoDto } from './dto/actualizar-producto.dto';
+import { ActualizarPreciosDto } from './dto/actualizar-precios.dto';
 import { AjustarStockDto } from './dto/ajustar-stock.dto';
 import { CrearProductoDto } from './dto/crear-producto.dto';
 import { aProductoRespuesta } from './dto/producto-respuesta';
@@ -49,6 +50,14 @@ export class ProductosController {
   @ApiOperation({ summary: 'Editar un producto (datos, precios, activo)' })
   async actualizar(@Param('id') id: string, @Body() dto: ActualizarProductoDto) {
     return aProductoRespuesta(await this.servicio.actualizar(id, dto));
+  }
+
+  @Post('actualizar-precios')
+  @ApiOperation({
+    summary: 'Actualizar en bloque los precios de venta por un porcentaje',
+  })
+  actualizarPrecios(@Body() dto: ActualizarPreciosDto) {
+    return this.servicio.actualizarPreciosPorcentaje(dto);
   }
 
   @Post(':id/ajustar-stock')
