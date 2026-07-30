@@ -31,4 +31,7 @@ export interface ConfiguracionNegocio {
   features: FeaturesNegocio;
   // Textos que cambian por rubro (extensible; hoy casi todo sale de arriba).
   etiquetas: Record<string, string>;
+  // Emojis del menú que cambian por rubro (código de sección → emoji). Lo que
+  // no esté acá usa el ícono por defecto del frontend.
+  iconos: Record<string, string>;
 }

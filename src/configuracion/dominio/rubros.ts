@@ -40,6 +40,7 @@ export const REGISTRO_RUBROS: Record<Rubro, ConfiguracionNegocio> = {
       ejemploSubcategoria: 'Cerdo, Vaca, Pollo',
       ejemploInsumos: 'sal, pimienta, tripa',
     },
+    iconos: {},
   },
   pastas: {
     rubro: 'pastas',
@@ -61,6 +62,8 @@ export const REGISTRO_RUBROS: Record<Rubro, ConfiguracionNegocio> = {
       ejemploSubcategoria: 'Ricota, Verdura, Jamón y queso',
       ejemploInsumos: 'harina, huevos, ricota',
     },
+    // El ícono de Productos deja de ser una chuleta (🥩) y pasa a pasta.
+    iconos: { productos: '🍝' },
   },
 };
 
