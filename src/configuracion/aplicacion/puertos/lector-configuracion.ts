@@ -3,6 +3,8 @@ import { FeaturesNegocio } from '../../dominio/configuracion-negocio';
 // Puerto que publica el contexto de configuración para que otros contextos
 // (ej. Catálogo, Producción) lean lo que necesitan sin acoplarse al módulo.
 export abstract class LectorConfiguracion {
+  // Nombre del negocio para mostrar (ej. "La Carnicería", "Fábrica de Pastas").
+  abstract nombreNegocio(): string;
   // Códigos de categoría válidos para el rubro activo.
   abstract categoriasValidas(): string[];
   // Categorías cuyos productos se fabrican con receta.

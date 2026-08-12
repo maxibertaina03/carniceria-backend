@@ -10,6 +10,10 @@ export class LectorConfiguracionNegocio extends LectorConfiguracion {
     super();
   }
 
+  nombreNegocio(): string {
+    return this.servicio.obtener().nombreNegocio;
+  }
+
   categoriasValidas(): string[] {
     return this.servicio.obtener().categorias.map((c) => c.codigo);
   }

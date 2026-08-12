@@ -15,6 +15,8 @@ const TODOS_LOS_MODULOS = [
   'desposte',
   'produccion',
   'admin',
+  // Guía de ayuda in-app: aplica a todos los rubros (no es específica de ninguno).
+  'ayuda',
 ];
 
 // Registro de rubros: esto es CONFIGURACIÓN (datos), centralizada en un solo
@@ -45,8 +47,13 @@ export const REGISTRO_RUBROS: Record<Rubro, ConfiguracionNegocio> = {
   pastas: {
     rubro: 'pastas',
     nombreNegocio: 'Fábrica de Pastas',
-    // Pastas no despieza medias reses: se oculta Desposte.
-    modulos: TODOS_LOS_MODULOS.filter((m) => m !== 'desposte'),
+    // Pastas no despieza medias reses: se oculta Desposte. Además estrena el
+    // asistente de soporte con IA ('asistente' es un flag, no una sección del
+    // menú: lo consume el widget de chat del frontend).
+    modulos: [
+      ...TODOS_LOS_MODULOS.filter((m) => m !== 'desposte'),
+      'asistente',
+    ],
     categorias: [
       { codigo: 'PASTAS_RELLENAS', nombre: 'Pastas rellenas', producible: true, esInsumo: false },
       { codigo: 'PASTAS_SECAS', nombre: 'Pastas secas', producible: true, esInsumo: false },

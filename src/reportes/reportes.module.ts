@@ -10,5 +10,8 @@ import { ReportesController } from './interfaces/reportes.controller';
     ServicioReportes,
     { provide: ConsultasReportes, useClass: ConsultasReportesPrisma },
   ],
+  // Se exporta el puerto para que el contexto Asistente reutilice las consultas
+  // de solo lectura (ventas, deudas, stock, resumen) sin duplicarlas.
+  exports: [ConsultasReportes],
 })
 export class ReportesModule {}

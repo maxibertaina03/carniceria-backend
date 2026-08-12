@@ -10,6 +10,9 @@ class LectorFake extends LectorConfiguracion {
   constructor(private readonly conLotes: boolean) {
     super();
   }
+  nombreNegocio(): string {
+    return 'Negocio de prueba';
+  }
   categoriasValidas(): string[] {
     return [];
   }
