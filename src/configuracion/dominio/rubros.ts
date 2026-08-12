@@ -47,13 +47,12 @@ export const REGISTRO_RUBROS: Record<Rubro, ConfiguracionNegocio> = {
   pastas: {
     rubro: 'pastas',
     nombreNegocio: 'Fábrica de Pastas',
-    // Pastas no despieza medias reses: se oculta Desposte. Además estrena el
-    // asistente de soporte con IA ('asistente' es un flag, no una sección del
-    // menú: lo consume el widget de chat del frontend).
-    modulos: [
-      ...TODOS_LOS_MODULOS.filter((m) => m !== 'desposte'),
-      'asistente',
-    ],
+    // Pastas no despieza medias reses: se oculta Desposte.
+    // NOTA: el asistente con IA quedó construido pero EN STANDBY (flag
+    // 'asistente' apagado a propósito). Para reactivar el chat, volver a agregar
+    // 'asistente' a estos módulos y cargar la env de la IA. El código sigue en
+    // src/asistente/ (dormido, no molesta).
+    modulos: TODOS_LOS_MODULOS.filter((m) => m !== 'desposte'),
     categorias: [
       { codigo: 'PASTAS_RELLENAS', nombre: 'Pastas rellenas', producible: true, esInsumo: false },
       { codigo: 'PASTAS_SECAS', nombre: 'Pastas secas', producible: true, esInsumo: false },
